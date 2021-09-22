@@ -1,11 +1,12 @@
 let store = {
-    user: { name: "Student" },
+    user: { name: "Joshua" },
     apod: '',
-    rovers: ['Curiosity', 'Opportunity', 'Spirit'],
-}
+    // rovers: ['Curiosity', 'Opportunity', 'Spirit'],
+    rovers: '',
+};
 
 // add our markup to the page
-const root = document.getElementById('root')
+const root = document.getElementById('root');
 
 const updateStore = (store, newState) => {
     store = Object.assign(store, newState)
@@ -38,15 +39,14 @@ const App = (state) => {
                 </p>
                 ${ImageOfTheDay(apod)}
             </section>
+            <section>
+                ${roverPics(rovers)}
+            </section>
         </main>
         <footer></footer>
     `
 }
 
-// listening for load event because page should load before any JS is called
-window.addEventListener('load', () => {
-    render(root, store)
-})
 
 // ------------------------------------------------------  COMPONENTS
 
@@ -91,15 +91,47 @@ const ImageOfTheDay = (apod) => {
     }
 }
 
+const roverPics = (rovers) => {
+    if (!rovers) {
+        getRoverInfo(store, 'Curiosity');
+    }
+    let html = '';
+    let pics = rovers.data.latest_photos;
+    for (let i = 0; i < pics.length; i++) {
+        html += `<li><a href="${pics[i].img_src}">${pics[i].id}</a></li>`
+        console.log(pics[i]);
+    }
+    return (`
+            <ul>${html}</ul>
+        `);
+}
+
 // ------------------------------------------------------  API CALLS
 
 // Example API call
 const getImageOfTheDay = (state) => {
-    let { apod } = state
+    let apod = state.apod;
 
     fetch(`http://localhost:3000/apod`)
         .then(res => res.json())
         .then(apod => updateStore(store, { apod }))
 
-    return data
+    return apod;
 }
+
+const getRoverInfo = (state, roverName) => {
+    let rovers = state.rovers;
+    
+    fetch(`http://localhost:3000/rover/${roverName}`)
+        .then(res => res.json())
+        .then(rovers => updateStore(store, { rovers }))
+
+    return rovers;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+
+// listening for load event because page should load before any JS is called
+window.addEventListener('load', () => {
+    render(root, store)
+})
