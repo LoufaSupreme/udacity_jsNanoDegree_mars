@@ -1,15 +1,15 @@
-let store = {
+let store = Immutable.Map({
     user: { name: "Joshua" },
     apod: '',
     // rovers: ['Curiosity', 'Opportunity', 'Spirit'],
     rovers: '',
-};
+});
 
 // add our markup to the page
 const root = document.getElementById('root');
 
-const updateStore = (store, newState) => {
-    store = Object.assign(store, newState)
+const updateStore = (state, newState) => {
+    store = state.merge(newState)
     render(root, store)
 }
 
@@ -20,12 +20,14 @@ const render = async (root, state) => {
 
 // create content
 const App = (state) => {
-    let { rovers, apod } = state
+    // let { rovers, apod } = state
+    const rovers = state.get('rovers');
+    const apod = state.get('apod');
 
     return `
         <header></header>
         <main>
-            ${Greeting(store.user.name)}
+            ${Greeting(state.get('user'))}
             <section>
                 <h3>Put things on the page!</h3>
                 <p>Here is an example section.</p>
@@ -99,7 +101,6 @@ const roverPics = (rovers) => {
     let pics = rovers.data.latest_photos;
     for (let i = 0; i < pics.length; i++) {
         html += `<li><a href="${pics[i].img_src}">${pics[i].id}</a></li>`
-        console.log(pics[i]);
     }
     return (`
             <ul>${html}</ul>
@@ -110,21 +111,27 @@ const roverPics = (rovers) => {
 
 // Example API call
 const getImageOfTheDay = (state) => {
-    let apod = state.apod;
+    let apod = state.get('apod');
 
     fetch(`http://localhost:3000/apod`)
         .then(res => res.json())
-        .then(apod => updateStore(store, { apod }))
+        .then(apod => {
+            state = state.set('apod', apod);
+            updateStore(store, state)
+        });
 
     return apod;
 }
 
 const getRoverInfo = (state, roverName) => {
-    let rovers = state.rovers;
+    let rovers = state.get('rovers');
     
     fetch(`http://localhost:3000/rover/${roverName}`)
         .then(res => res.json())
-        .then(rovers => updateStore(store, { rovers }))
+        .then(rovers => {
+            state = state.set('rovers', rovers);
+            updateStore(store, state)
+        });
 
     return rovers;
 }
