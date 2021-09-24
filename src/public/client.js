@@ -1,8 +1,9 @@
 let store = Immutable.Map({
     user: { name: "Joshua" },
     apod: '',
-    // rovers: ['Curiosity', 'Opportunity', 'Spirit'],
-    rovers: '',
+    rovers: ['Curiosity', 'Opportunity', 'Spirit'],
+    roverInfo: '',
+    intro: true,
 });
 
 // add our markup to the page
@@ -23,26 +24,23 @@ const App = (state) => {
     // let { rovers, apod } = state
     const rovers = state.get('rovers');
     const apod = state.get('apod');
+    const intro = state.get('intro');
+    const roverInfo = state.get('roverInfo')
 
+    // apod:
+    // return `${ImageOfTheDay(apod)}`;
+    
     return `
         <header></header>
         <main>
-            ${Greeting(state.get('user'))}
+            ${Greeting(state.get('user').name)}
             <section>
-                <h3>Put things on the page!</h3>
-                <p>Here is an example section.</p>
-                <p>
-                    One of the most popular websites at NASA is the Astronomy Picture of the Day. In fact, this website is one of
-                    the most popular websites across all federal agencies. It has the popular appeal of a Justin Bieber video.
-                    This endpoint structures the APOD imagery and associated metadata so that it can be repurposed for other
-                    applications. In addition, if the concept_tags parameter is set to True, then keywords derived from the image
-                    explanation are returned. These keywords could be used as auto-generated hashtags for twitter or instagram feeds;
-                    but generally help with discoverability of relevant imagery.
-                </p>
-                ${ImageOfTheDay(apod)}
+                <h3>Red Rover</h3>
+                <p>Placeholder.</p>
             </section>
             <section>
-                ${roverPics(rovers)}
+                ${makeButtons(intro, rovers)}
+                ${roverPics(roverInfo)}
             </section>
         </main>
         <footer></footer>
@@ -93,18 +91,30 @@ const ImageOfTheDay = (apod) => {
     }
 }
 
-const roverPics = (rovers) => {
-    if (!rovers) {
+const roverPics = (roverInfo) => {
+    if (!roverInfo) {
         getRoverInfo(store, 'Curiosity');
     }
     let html = '';
-    let pics = rovers.data.latest_photos;
+    let pics = roverInfo.data.latest_photos;
     for (let i = 0; i < pics.length; i++) {
-        html += `<li><a href="${pics[i].img_src}">${pics[i].id}</a></li>`
+        html += `<img src="${pics[i].img_src}" class="photo" alt="">`
     }
     return (`
-            <ul>${html}</ul>
+            <div class="pic-container">${html}</div>
         `);
+}
+
+const makeButtons = (intro, rovers) => {
+    html = '';
+    if (intro) {
+        for (let i = 0; i < rovers.length; i++) {
+            html += `<div class="btn" data-name="${rovers[i]}">${rovers[i]}</div>`;
+        }
+    }
+    return (`
+        <div class="btn-container">${html}</div>
+    `);
 }
 
 // ------------------------------------------------------  API CALLS
@@ -124,16 +134,16 @@ const getImageOfTheDay = (state) => {
 }
 
 const getRoverInfo = (state, roverName) => {
-    let rovers = state.get('rovers');
+    let roverInfo = state.get('roverInfo');
     
     fetch(`http://localhost:3000/rover/${roverName}`)
         .then(res => res.json())
-        .then(rovers => {
-            state = state.set('rovers', rovers);
+        .then(roverInfo => {
+            state = state.set('roverInfo', roverInfo);
             updateStore(store, state)
         });
 
-    return rovers;
+    return roverInfo;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
