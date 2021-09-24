@@ -15,7 +15,8 @@ const updateStore = (state, newState) => {
 }
 
 const render = async (root, state) => {
-    root.innerHTML = App(state)
+    root.innerHTML = App(state);
+    addListeners(root);
 }
 
 
@@ -96,7 +97,7 @@ const roverPics = (roverInfo) => {
         getRoverInfo(store, 'Curiosity');
     }
     let html = '';
-    let pics = roverInfo.data.latest_photos;
+    const pics = roverInfo.data.latest_photos;
     for (let i = 0; i < pics.length; i++) {
         html += `<img src="${pics[i].img_src}" class="photo" alt="">`
     }
@@ -115,6 +116,15 @@ const makeButtons = (intro, rovers) => {
     return (`
         <div class="btn-container">${html}</div>
     `);
+}
+
+const addListeners = (root) => {
+    const buttons = root.querySelectorAll(".btn");
+    buttons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            getRoverInfo(store, e.target.dataset.name);
+        });
+    });
 }
 
 // ------------------------------------------------------  API CALLS
@@ -150,5 +160,6 @@ const getRoverInfo = (state, roverName) => {
 
 // listening for load event because page should load before any JS is called
 window.addEventListener('load', () => {
-    render(root, store)
+    console.log('DOM is loaded.');
+    render(root, store);
 })
