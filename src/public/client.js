@@ -96,26 +96,26 @@ const roverPics = (roverInfo) => {
     if (!roverInfo) {
         getRoverInfo(store, 'Curiosity');
     }
-    let html = '';
-    const pics = roverInfo.data.latest_photos;
-    for (let i = 0; i < pics.length; i++) {
-        html += `<img src="${pics[i].img_src}" class="photo" alt="">`
-    }
+    const picsArray = roverInfo.data.latest_photos;
+    const pics = picsArray.reduce((html, pic) => {
+        return html + `<img src="${pic.img_src}" class="photo" title="Sol ${pic.sol} from ${pic.rover.name}'s ${pic.camera.name}"/>`;
+    },'');
+
     return (`
-            <div class="pic-container">${html}</div>
+            <div class="pic-container">${pics}</div>
         `);
 }
 
 const makeButtons = (intro, rovers) => {
-    html = '';
     if (intro) {
-        for (let i = 0; i < rovers.length; i++) {
-            html += `<div class="btn" data-name="${rovers[i]}">${rovers[i]}</div>`;
-        }
+        const html = rovers.reduce((html, rover) => {
+            return html + `<div class="btn" data-name="${rover}">${rover}</div>`;
+        },'');
+        
+        return (`
+            <div class="btn-container">${html}</div>
+        `);
     }
-    return (`
-        <div class="btn-container">${html}</div>
-    `);
 }
 
 const addListeners = (root) => {
