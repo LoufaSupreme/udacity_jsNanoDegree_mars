@@ -8,6 +8,8 @@
 body {
   color: white;
   display: flex;
+  align-items: center;
+  justify-items: center;
   flex-direction: column;
   font-family: Arial;
   min-height: 100vh;
@@ -20,6 +22,14 @@ body {
 
 header {
   /* header styles */
+}
+
+h1 {
+  /* display: flex; */
+  text-align: center;
+  color: rgb(173, 58, 58);
+  text-shadow: 3px 4px 10px black;
+  margin-bottom: 0.5rem;
 }
 
 main {
@@ -39,21 +49,24 @@ footer {
   justify-items: center;
   align-items: center;
   background: rgba(0,0,0,0.2);
+  border: 4px solid white;
+  border-radius: 15px;
 }
 
 img {
   object-fit: cover;
-  max-height: 300px;
   max-width: 100%;
+  min-width: 45%;
   margin: 5px;
   padding: 12px;
-  border: 2px solid white;
-  border-radius: 5%;
+  /* border: 2px solid white; */
+  /* border-radius: 5%; */
 }
 
 .btn-container {
   display: flex;
   flex-direction: column;
+  margin-bottom: 1rem;
 }
 
 .btn {
@@ -66,6 +79,7 @@ img {
   justify-content: center;
   align-items: center;
   justify-items: center;
+  cursor: pointer;
 }
 
 /* -------------------  TABLET  --------------------- */
@@ -78,6 +92,17 @@ img {
 
 @media (min-width: 1224px) {
   /* use mobile */
+  .btn-container {
+    flex-direction: row;
+  }
+
+  .btn {
+    flex-grow: 1;
+  }
+
+  img {
+    max-width: 20%;
+  }
 }
 
 /* -------------------  LARGE SCREENS  -------------- */

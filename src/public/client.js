@@ -1,9 +1,9 @@
 let store = Immutable.Map({
-    user: { name: "Joshua" },
+    header: { title: "PROJECT RED ROVER" },
     apod: '',
     rovers: ['Curiosity', 'Opportunity', 'Spirit'],
     roverInfo: '',
-    intro: true,
+    manifest: '',
 });
 
 // add our markup to the page
@@ -25,8 +25,8 @@ const App = (state) => {
     // let { rovers, apod } = state
     const rovers = state.get('rovers');
     const apod = state.get('apod');
-    const intro = state.get('intro');
-    const roverInfo = state.get('roverInfo')
+    const roverInfo = state.get('roverInfo');
+    const manifest = state.get('manifest');
 
     // apod:
     // return `${ImageOfTheDay(apod)}`;
@@ -34,13 +34,14 @@ const App = (state) => {
     return `
         <header></header>
         <main>
-            ${Greeting(state.get('user').name)}
+            ${Header(state.get('header').title)}
             <section>
-                <h3>Red Rover</h3>
-                <p>Placeholder.</p>
+                ${makeButtons(rovers)}
             </section>
             <section>
-                ${makeButtons(intro, rovers)}
+                ${roverSpecs(manifest)}
+            </section>
+            <section>
                 ${roverPics(roverInfo)}
             </section>
         </main>
@@ -52,15 +53,15 @@ const App = (state) => {
 // ------------------------------------------------------  COMPONENTS
 
 // Pure function that renders conditional information -- THIS IS JUST AN EXAMPLE, you can delete it.
-const Greeting = (name) => {
+const Header = (name) => {
     if (name) {
         return `
-            <h1>Welcome, ${name}!</h1>
+            <h1>${name}</h1>
         `
     }
 
     return `
-        <h1>Hello!</h1>
+        <h1>Mars Rover</h1>
     `
 }
 
@@ -92,10 +93,30 @@ const ImageOfTheDay = (apod) => {
     }
 }
 
+// displays manifest info for the selected rover
+const roverSpecs = (manifest) => {
+    if (!manifest) {
+        return "<div></div>";
+    }
+
+        return (`
+            <h3>${manifest.name}</h3>
+            <ul>
+                <li>Launched from Earth: ${manifest.launch_date}</li>
+                <li>Landed on Mars: ${manifest.landing_date}</li>
+                <li>Mission Status: ${manifest.status}</li>
+                <li>Latest Day on Mars: ${manifest.latest_date} (Sol ${manifest.latest_sol})</li>
+                <li>Total Photos Taken: ${manifest.total_photos}</li>
+            </ul>
+        `)
+}
+
+// displays images from the selected rover
 const roverPics = (roverInfo) => {
     if (!roverInfo) {
-        getRoverInfo(store, 'Curiosity');
+        return "<div></div>";
     }
+
     const picsArray = roverInfo.data.latest_photos;
     const pics = picsArray.reduce((html, pic) => {
         return html + `<img src="${pic.img_src}" class="photo" title="Sol ${pic.sol} from ${pic.rover.name}'s ${pic.camera.name}"/>`;
@@ -106,23 +127,24 @@ const roverPics = (roverInfo) => {
         `);
 }
 
-const makeButtons = (intro, rovers) => {
-    if (intro) {
-        const html = rovers.reduce((html, rover) => {
-            return html + `<div class="btn" data-name="${rover}">${rover}</div>`;
-        },'');
-        
-        return (`
-            <div class="btn-container">${html}</div>
-        `);
-    }
+// create rover selection buttons on the screen
+const makeButtons = (rovers) => {
+    const html = rovers.reduce((html, rover) => {
+        return html + `<div class="btn" data-name="${rover}">${rover}</div>`;
+    },'');
+    
+    return (`
+        <div class="btn-container">${html}</div>
+    `);
 }
 
+// add event listeners to each button on the screen
+// this function is called in render
 const addListeners = (root) => {
     const buttons = root.querySelectorAll(".btn");
     buttons.forEach(btn => {
         btn.addEventListener('click', (e) => {
-            getRoverInfo(store, e.target.dataset.name);
+            roverCall(store, e.target.dataset.name);
         });
     });
 }
@@ -143,17 +165,54 @@ const getImageOfTheDay = (state) => {
     return apod;
 }
 
-const getRoverInfo = (state, roverName) => {
-    let roverInfo = state.get('roverInfo');
-    
-    fetch(`http://localhost:3000/rover/${roverName}`)
-        .then(res => res.json())
-        .then(roverInfo => {
-            state = state.set('roverInfo', roverInfo);
-            updateStore(store, state)
-        });
+// API call to get rover manifest info
+const getManifest = async (roverName) => {
 
+    const manifest = await fetch(`http://localhost:3000/manifests/${roverName}`)
+        .then(res => res.json())
+        .then(res => {
+            const info = res.data.photo_manifest;
+            const roverManifest = {
+                name: info.name,
+                launch_date: info.launch_date,
+                landing_date: info.landing_date,
+                latest_date: info.max_date,
+                latest_sol: info.max_sol,
+                status: info.status,
+                total_photos: info.total_photos
+            }
+            return roverManifest;
+        })
+        .catch(err => console.log(err));
+
+    return manifest;
+}
+
+// API Call to get rover info
+const getRoverInfo = async (roverName) => {    
+
+    const roverInfo = await fetch(`http://localhost:3000/rover/${roverName}`)
+        .then(res => res.json())
+        .then(data => data)
+        .catch(err => console.log(err));
+    
     return roverInfo;
+}
+
+// calls the NASA API twice, once for photos and once for manifest
+// then takes the results of those API calls (promises) and updates the store once, so only one render.
+const roverCall = async (state, roverName) => {
+    const manifest = await getManifest(roverName);
+    const info = await getRoverInfo(roverName);
+    
+    const promises = [info, manifest];
+    Promise.all(promises)
+        .then(results => {
+            state = state.set('roverInfo', results[0]);
+            state = state.set('manifest', results[1]);
+            updateStore(store, state);
+        })
+        .catch(err => console.log(err));    
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
