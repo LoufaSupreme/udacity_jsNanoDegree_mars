@@ -8,8 +8,6 @@
 body {
   color: white;
   display: flex;
-  align-items: center;
-  justify-items: center;
   flex-direction: column;
   font-family: Arial;
   min-height: 100vh;
@@ -18,6 +16,14 @@ body {
   /* background-size: 100% auto; */
   background-size: cover;
   background-color: black;
+}
+
+main {
+  display: flex;
+  /* flex: 1; */
+  padding: 20px;
+  justify-items: center;
+  flex-direction: column;
 }
 
 header {
@@ -32,13 +38,8 @@ h1 {
   margin-bottom: 0.5rem;
 }
 
-main {
-  flex: 1;
-  padding: 20px;
-}
-
-footer {
-  /* footer styles */
+h3 {
+  color: rgb(173, 58, 58);
 }
 
 .pic-container {
@@ -51,6 +52,7 @@ footer {
   background: rgba(0,0,0,0.2);
   border: 4px solid white;
   border-radius: 15px;
+  flex-grow: 1;
 }
 
 img {
@@ -66,7 +68,8 @@ img {
 .btn-container {
   display: flex;
   flex-direction: column;
-  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  flex-grow: 1;
 }
 
 .btn {
@@ -82,6 +85,17 @@ img {
   cursor: pointer;
 }
 
+footer {
+  display: block;
+  position: absolute;
+  bottom: 0%;
+  left: 0;
+  right: 0;
+  margin-bottom: 0.5rem;
+  text-align: center;
+  font-size: 0.7rem;
+}
+
 /* -------------------  TABLET  --------------------- */
 @media (min-width: 768px) {
   /* use mobile */
@@ -90,8 +104,7 @@ img {
 
 /* -------------------  DESKTOP  -------------------- */
 
-@media (min-width: 1224px) {
-  /* use mobile */
+@media (min-width: 1054px) {
   .btn-container {
     flex-direction: row;
   }

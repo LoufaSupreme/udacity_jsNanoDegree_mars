@@ -45,7 +45,7 @@ const App = (state) => {
                 ${roverPics(roverInfo)}
             </section>
         </main>
-        <footer></footer>
+        <footer>Copywrite © Davis Innovations | Data from NASA</footer>
     `
 }
 
@@ -100,7 +100,7 @@ const roverSpecs = (manifest) => {
     }
 
         return (`
-            <h3>${manifest.name}</h3>
+            <h3>Red Rover, Red Rover, Send ${manifest.name} On Over!</h3>
             <ul>
                 <li>Launched from Earth: ${manifest.launch_date}</li>
                 <li>Landed on Mars: ${manifest.landing_date}</li>
