@@ -24,7 +24,7 @@ app.get('/apod', async (req, res) => {
 })
 
 // rover latest pictures API endpoint:
-app.get('/rover/:roverName', async (req, res) => {
+app.get('/latest_photos/:roverName', async (req, res) => {
     const roverName = req.params.roverName;
     let now = new Date();
     now = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;

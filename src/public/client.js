@@ -2,7 +2,7 @@ let store = Immutable.Map({
     header: { title: "PROJECT RED ROVER" },
     apod: '',
     rovers: ['Curiosity', 'Opportunity', 'Spirit'],
-    roverInfo: '',
+    roverPhotos: '',
     manifest: '',
 });
 
@@ -25,7 +25,7 @@ const App = (state) => {
     // let { rovers, apod } = state
     const rovers = state.get('rovers');
     const apod = state.get('apod');
-    const roverInfo = state.get('roverInfo');
+    const roverPhotos = state.get('roverPhotos');
     const manifest = state.get('manifest');
 
     // apod:
@@ -42,10 +42,9 @@ const App = (state) => {
                 ${roverSpecs(manifest)}
             </section>
             <section>
-                ${roverPics(roverInfo)}
+                ${roverPics(roverPhotos)}
             </section>
-            <footer>Copywrite © Davis Innovations | Data from NASA</footer>
-
+             <footer>Copywrite © Davis Innovations | Data from NASA</footer>
         </main>
     `
 }
@@ -113,12 +112,12 @@ const roverSpecs = (manifest) => {
 }
 
 // displays images from the selected rover
-const roverPics = (roverInfo) => {
-    if (!roverInfo) {
+const roverPics = (roverPhotos) => {
+    if (!roverPhotos) {
         return "<div></div>";
     }
 
-    const picsArray = roverInfo.data.latest_photos;
+    const picsArray = roverPhotos.data.latest_photos;
     const pics = picsArray.reduce((html, pic) => {
         return html + `<img src="${pic.img_src}" class="photo" title="Sol ${pic.sol} from ${pic.rover.name}'s ${pic.camera.name}"/>`;
     },'');
@@ -190,26 +189,26 @@ const getManifest = async (roverName) => {
 }
 
 // API Call to get rover info
-const getRoverInfo = async (roverName) => {    
+const getRoverPhotos = async (roverName) => {    
 
-    const roverInfo = await fetch(`http://localhost:3000/rover/${roverName}`)
+    const roverPhotos = await fetch(`http://localhost:3000/latest_photos/${roverName}`)
         .then(res => res.json())
         .then(data => data)
         .catch(err => console.log(err));
     
-    return roverInfo;
+    return roverPhotos;
 }
 
 // calls the NASA API twice, once for photos and once for manifest
 // then takes the results of those API calls (promises) and updates the store once, so only one render.
 const roverCall = async (state, roverName) => {
     const manifest = await getManifest(roverName);
-    const info = await getRoverInfo(roverName);
+    const info = await getRoverPhotos(roverName);
     
     const promises = [info, manifest];
     Promise.all(promises)
         .then(results => {
-            state = state.set('roverInfo', results[0]);
+            state = state.set('roverPhotos', results[0]);
             state = state.set('manifest', results[1]);
             updateStore(store, state);
         })
