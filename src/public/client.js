@@ -44,8 +44,9 @@ const App = (state) => {
             <section>
                 ${roverPics(roverInfo)}
             </section>
+            <footer>Copywrite © Davis Innovations | Data from NASA</footer>
+
         </main>
-        <footer>Copywrite © Davis Innovations | Data from NASA</footer>
     `
 }
 
@@ -53,15 +54,15 @@ const App = (state) => {
 // ------------------------------------------------------  COMPONENTS
 
 // Pure function that renders conditional information -- THIS IS JUST AN EXAMPLE, you can delete it.
-const Header = (name) => {
-    if (name) {
+const Header = (title) => {
+    if (title) {
         return `
-            <h1>${name}</h1>
+            <h1>${title}</h1>
         `
     }
 
     return `
-        <h1>Mars Rover</h1>
+        <h1>Mars Rover API</h1>
     `
 }
 
