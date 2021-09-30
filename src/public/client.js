@@ -28,9 +28,6 @@ const App = (state) => {
     const roverPhotos = state.get('roverPhotos');
     const manifest = state.get('manifest');
 
-    // apod:
-    // return `${ImageOfTheDay(apod)}`;
-    
     return `
         <header></header>
         <main>
@@ -118,9 +115,13 @@ const roverPics = (roverPhotos) => {
     }
 
     const picsArray = roverPhotos.data.latest_photos;
-    const pics = picsArray.reduce((html, pic) => {
-        return html + `<img src="${pic.img_src}" class="photo" title="Sol ${pic.sol} from ${pic.rover.name}'s ${pic.camera.name}"/>`;
-    },'');
+    const pics = picsArray
+        .map(pic => {
+            return `<img src="${pic.img_src}" class="photo" title="Sol ${pic.sol} from ${pic.rover.name}'s ${pic.camera.name}"/>`;
+        })
+        .reduce((html, img) => {
+            return html + img;
+        },'');
 
     return (`
             <div class="pic-container">${pics}</div>
