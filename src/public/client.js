@@ -5,6 +5,7 @@ let store = Immutable.Map({
     roverPhotos: '',
     photoHistory: [],
     manifest: '',
+    loading_msg: '',
 });
 
 // add our markup to the page
@@ -23,12 +24,14 @@ const render = async (root, state) => {
 
 // create content
 const App = (state) => {
-    // let { rovers, apod } = state
+
+    // grab objects from state (Immutable.JS):
     const rovers = state.get('rovers');
     const apod = state.get('apod');
     const roverPhotos = state.get('roverPhotos');
     const photoHistory = state.get('photoHistory');
     const manifest = state.get('manifest');
+    const loading_msg = state.get('loading_msg');
 
     return `
         <header></header>
@@ -38,6 +41,7 @@ const App = (state) => {
                 ${makeButtons(rovers)}
             </section>
             <section>
+                ${writeMessage(loading_msg)}
                 ${roverSpecs(manifest)}
             </section>
             <section>
@@ -107,7 +111,7 @@ const roverSpecs = (manifest) => {
     const mission_duration = (latest_date.getTime() - land_date.getTime()) / (1000*60*60*24);
 
     return (`
-        <h3>Red Rover, Red Rover, Send ${manifest.name} On Over!</h3>
+        <div class="specs-title">Mars Rover: ${manifest.name}</div>
         <ul>
             <li>
                 ${mkSpan('Launched from Earth:', 'label')} ${launch_date.toDateString()}
@@ -145,7 +149,7 @@ const roverPics = (roverPhotos) => {
             .map(pic => {
                 return (`
                     <img src="${pic.img_src}" class="photo" title="Sol ${pic.sol} from ${pic.rover.name}'s ${pic.camera.name}"/>
-                    <span id="pic-date">${pic.earth_date}</span>
+                    <div id="pic-date">${pic.earth_date}</div>
                 `);
             })
             .reduce((html, img) => {
@@ -184,12 +188,28 @@ const makeButtons = (rovers) => {
     `);
 }
 
+// display a loading message while API's fetch data:
+const writeMessage = (msg) => {
+    if (!msg) {
+        return '';
+    }
+    return `<div class="loading-msg">${msg}</div>`;
+}
+
+const setMessage = (state, name) => {
+    const msg = `Red Rover, Red Rover, Send ${mkSpan(name, 'loading-name')} On Over...[LOADING]`;
+
+    state = state.set('loading_msg', msg);
+    updateStore(store, state);
+}
+
 // add event listeners to each button on the screen
 // this function is called in render
 const addListeners = (root) => {
     const buttons = root.querySelectorAll(".btn");
     buttons.forEach(btn => {
         btn.addEventListener('click', (e) => {
+            setMessage(store, e.target.dataset.name);
             roverCall(store, e.target.dataset.name);
         });
     });
@@ -262,6 +282,8 @@ const getManifest = async (roverName) => {
 // API Call to get rover "latest_photos"
 const getRoverPhotos = async (roverName) => {    
 
+    console.log(`Fetching latest photos for Rover ${roverName}`);
+    
     const roverPhotos = await fetch(`http://localhost:3000/latest_photos/${roverName}`)
         .then(res => res.json())
         .then(data => data)
@@ -272,6 +294,8 @@ const getRoverPhotos = async (roverName) => {
 
 // API call to get several days worth of pictures starting from the rover's most recent day on Mars
 const getDaysOfPhotos = async (roverName, date, num_days) => {
+    
+    console.log(`Fetching ${num_days} worth of images for Rover ${roverName}`);
 
     const photos = await fetch(`http://localhost:3000/photos/days/${roverName}/${date}/${num_days}`)
         .then(res => res.json())
@@ -283,6 +307,8 @@ const getDaysOfPhotos = async (roverName, date, num_days) => {
 
 // API call to get a certain number of photos per rover, starting from a particular day.
 const getNumPhotos = async (roverName, date, amount) => {
+
+    console.log(`Fetching ${amount} images from Rover ${roverName}`);
     
     const photos = await fetch(`http://localhost:3000/photos/amount/${roverName}/${date}/${amount}`)
         .then(res => res.json())
@@ -307,6 +333,7 @@ const roverCall = async (state, roverName) => {
             state = state.set('roverPhotos', results[0]);
             state = state.set('manifest', results[1]);
             state = state.set('photoHistory', results[2]);
+            state = state.set('loading_msg', '');
             updateStore(store, state);
         })
         .catch(err => console.log(err));    
@@ -316,6 +343,5 @@ const roverCall = async (state, roverName) => {
 
 // listening for load event because page should load before any JS is called
 window.addEventListener('load', () => {
-    console.log('DOM is loaded.');
     render(root, store);
 })
