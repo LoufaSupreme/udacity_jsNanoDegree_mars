@@ -109,13 +109,27 @@ const roverSpecs = (manifest) => {
     return (`
         <h3>Red Rover, Red Rover, Send ${manifest.name} On Over!</h3>
         <ul>
-            <li>Launched from Earth: ${launch_date.toDateString()}</li>
-            <li>Landed on Mars: ${land_date.toDateString()}</li>
-            <li>Flight Time: ${flight_time} days</li>
-            <li>Latest Day on Mars: ${latest_date.toDateString()} (Sol ${formatNumber(manifest.latest_sol)})</li>
-            <li>Elapsed Mission Duration: ${formatNumber(mission_duration)} days</li>
-            <li>Mission Status: ${manifest.status.replace(/^\w/, (c) => c.toUpperCase())}</li>
-            <li>Total Photos Taken: ${formatNumber(manifest.total_photos)}</li>
+            <li>
+                ${mkSpan('Launched from Earth:', 'label')} ${launch_date.toDateString()}
+            </li>
+            <li>
+                ${mkSpan('Landed on Mars:', 'label')} ${land_date.toDateString()}
+            </li>
+            <li>
+                ${mkSpan('Flight Time:','label')} ${flight_time} days
+            </li>
+            <li>
+                ${mkSpan('Latest Day on Mars:','label')} ${latest_date.toDateString()} (Sol ${formatNumber(manifest.latest_sol)})
+            </li>
+            <li>
+                ${mkSpan('Elapsed Mission Duration:','label')} ${formatNumber(mission_duration)} days (${(mission_duration / 365).toFixed(1)} years)
+            </li>
+            <li>
+                ${mkSpan('Mission Status:','label')} ${wrapStatus(manifest.status)}
+            </li>
+            <li>
+                ${mkSpan('Total Photos Taken:','label')} ${formatNumber(manifest.total_photos)}
+            </li>
         </ul>
     `)
 }
@@ -183,10 +197,28 @@ const addListeners = (root) => {
 
 // ------------------------------------------------------  HELPER FUNCTIONS
 
+// inserts commas to separate thousands:
 // source: https://blog.abelotech.com/posts/number-currency-formatting-javascript/
 function formatNumber(num) {
     return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
   }
+
+// wraps a span w/ a specified class name around an item:
+function mkSpan(item, class_name) {
+    return `<span class="${class_name}">${item}</span>`;
+}
+
+// takes the mission status and wraps it in a span depending on the value:
+function wrapStatus(status) {
+    // capitalize first letter
+    const mission_status = status.replace(/^\w/, (c) => c.toUpperCase()); 
+
+    if (status == "active") {
+        return mkSpan(mission_status, 'active');
+    } else {
+        return mkSpan(mission_status, 'inactive');
+    }
+}
 
 // ------------------------------------------------------  API CALLS
 

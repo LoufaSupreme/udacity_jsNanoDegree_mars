@@ -104,6 +104,22 @@ footer {
   font-size: 0.7rem;
 }
 
+/* mission status styling */
+.active {
+  color: orange;
+  font-size: 1.2rem;
+}
+
+.inactive {
+  color: greenyellow;
+  font-size: 1.2rem;
+}
+
+/* label for each item in the rover specs list */
+.label {
+  font-weight: bold;
+}
+
 /* -------------------  TABLET  --------------------- */
 @media (min-width: 768px) {
   /* use mobile */
