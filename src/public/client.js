@@ -3,6 +3,7 @@ let store = Immutable.Map({
     apod: '',
     rovers: ['Curiosity', 'Opportunity', 'Spirit'],
     roverPhotos: '',
+    photoHistory: [],
     manifest: '',
 });
 
@@ -26,6 +27,7 @@ const App = (state) => {
     const rovers = state.get('rovers');
     const apod = state.get('apod');
     const roverPhotos = state.get('roverPhotos');
+    const photoHistory = state.get('photoHistory');
     const manifest = state.get('manifest');
 
     return `
@@ -39,11 +41,13 @@ const App = (state) => {
                 ${roverSpecs(manifest)}
             </section>
             <section>
-                ${roverPics(roverPhotos)}
+                ${daysOfPhotos(photoHistory)}
             </section>
              <footer>Copywrite © Davis Innovations | Data from NASA</footer>
         </main>
     `
+    // ${roverPics(roverPhotos)}
+
 }
 
 
@@ -66,13 +70,13 @@ const Header = (title) => {
 const ImageOfTheDay = (apod) => {
 
     // If image does not already exist, or it is not from today -- request it again
-    const today = new Date()
-    const photodate = new Date(apod.date)
+    const today = new Date();
+    const photodate = new Date(apod.date);
     console.log(photodate.getDate(), today.getDate());
 
     console.log(photodate.getDate() === today.getDate());
     if (!apod || apod.date === today.getDate() ) {
-        getImageOfTheDay(store)
+        getImageOfTheDay(store);
     }
 
     // check if the photo of the day is actually type video!
@@ -96,16 +100,16 @@ const roverSpecs = (manifest) => {
         return "<div></div>";
     }
 
-        return (`
-            <h3>Red Rover, Red Rover, Send ${manifest.name} On Over!</h3>
-            <ul>
-                <li>Launched from Earth: ${manifest.launch_date}</li>
-                <li>Landed on Mars: ${manifest.landing_date}</li>
-                <li>Mission Status: ${manifest.status}</li>
-                <li>Latest Day on Mars: ${manifest.latest_date} (Sol ${manifest.latest_sol})</li>
-                <li>Total Photos Taken: ${manifest.total_photos}</li>
-            </ul>
-        `)
+    return (`
+        <h3>Red Rover, Red Rover, Send ${manifest.name} On Over!</h3>
+        <ul>
+            <li>Launched from Earth: ${manifest.launch_date}</li>
+            <li>Landed on Mars: ${manifest.landing_date}</li>
+            <li>Mission Status: ${manifest.status.replace(/^\w/, (c) => c.toUpperCase())}</li>
+            <li>Latest Day on Mars: ${manifest.latest_date} (Sol ${manifest.latest_sol})</li>
+            <li>Total Photos Taken: ${manifest.total_photos}</li>
+        </ul>
+    `)
 }
 
 // displays images from the selected rover
@@ -113,19 +117,38 @@ const roverPics = (roverPhotos) => {
     if (!roverPhotos) {
         return "<div></div>";
     }
+    else {
+        const picsArray = roverPhotos.data.latest_photos;
+        const pics = picsArray
+            .map(pic => {
+                return (`
+                    <img src="${pic.img_src}" class="photo" title="Sol ${pic.sol} from ${pic.rover.name}'s ${pic.camera.name}"/>
+                    <span id="pic-date">${pic.earth_date}</span>
+                `);
+            })
+            .reduce((html, img) => {
+                return html + img;
+            },'');
 
-    const picsArray = roverPhotos.data.latest_photos;
-    const pics = picsArray
-        .map(pic => {
-            return `<img src="${pic.img_src}" class="photo" title="Sol ${pic.sol} from ${pic.rover.name}'s ${pic.camera.name}"/>`;
-        })
-        .reduce((html, img) => {
-            return html + img;
-        },'');
+        return (`
+                <div class="pic-container">${pics}</div>
+            `);
+    }
+}
 
-    return (`
-            <div class="pic-container">${pics}</div>
-        `);
+const daysOfPhotos = (photoHistory) => {
+    if (photoHistory.length === 0) {
+        return "<div></div>";
+    }
+    else {
+        const pics = photoHistory
+            .reduce((html, pic) => {
+                return html + `<img src="${pic.img_src}" class="photo" title="Sol ${pic.sol} from ${pic.rover.name}'s ${pic.camera.name}"/>
+                <span id="pic-date">${pic.earth_date}</span>`
+            },'');
+        
+        return `<div class="pic-container">${pics}</div>`;
+    }
 }
 
 // create rover selection buttons on the screen
@@ -189,7 +212,7 @@ const getManifest = async (roverName) => {
     return manifest;
 }
 
-// API Call to get rover info
+// API Call to get rover "latest_photos"
 const getRoverPhotos = async (roverName) => {    
 
     const roverPhotos = await fetch(`http://localhost:3000/latest_photos/${roverName}`)
@@ -200,17 +223,31 @@ const getRoverPhotos = async (roverName) => {
     return roverPhotos;
 }
 
-// calls the NASA API twice, once for photos and once for manifest
+// API call to get several days worth of pictures starting from the rover's most recent day on Mars
+const getDaysOfPhotos = async (roverName, date, num_days) => {
+
+    const photos = await fetch(`http://localhost:3000/photos/${roverName}/${date}/${num_days}`)
+        .then(res => res.json())
+        .then(data => data)
+        .catch(err => console.log(err));
+    
+    return photos;
+}
+
+// calls the NASA API 3+ times, once for "latest photos", once for manifest and multiple times for an array of photos across several days 
 // then takes the results of those API calls (promises) and updates the store once, so only one render.
 const roverCall = async (state, roverName) => {
     const manifest = await getManifest(roverName);
-    const info = await getRoverPhotos(roverName);
+    const latest_date = manifest.latest_date;
+    const photos = await getDaysOfPhotos(roverName, latest_date, 5);
+    const latest_photos = await getRoverPhotos(roverName);
     
-    const promises = [info, manifest];
+    const promises = [latest_photos, manifest, photos];
     Promise.all(promises)
         .then(results => {
             state = state.set('roverPhotos', results[0]);
             state = state.set('manifest', results[1]);
+            state = state.set('photoHistory', results[2]);
             updateStore(store, state);
         })
         .catch(err => console.log(err));    

@@ -86,10 +86,13 @@ img {
   object-fit: cover;
   max-width: 100%;
   min-width: 45%;
-  margin: 5px;
-  padding: 12px;
-  /* border: 2px solid white; */
-  /* border-radius: 5%; */
+  margin: 15px 25px 3px 25px;
+  border: 1px solid rgb(173, 58, 58);
+}
+
+#pic-date {
+  font-size: 0.7rem;
+  color: rgb(200,200,200);
 }
 
 footer {
