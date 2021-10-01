@@ -64,44 +64,21 @@ h3 {
   color: rgb(173, 58, 58);
 }
 
+.specs-container {
+  margin-bottom: 1rem;
+}
+
+/* rover name above specs */
+.specs-title {
+  text-transform: uppercase;
+  color: rgb(173, 58, 58);
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+/* rover specs */
 ul {
   list-style-type: none;
-}
-
-.pic-container {
-  display: flex;
-  flex-wrap: wrap;
-  margin: 5px;
-  margin-bottom: 1rem;
-  justify-content: center;
-  justify-items: center;
-  align-items: center;
-  background: rgba(0,0,0,0.2);
-  border: 4px solid white;
-  border-radius: 15px;
-  flex-grow: 1;
-}
-
-img {
-  object-fit: cover;
-  max-width: 100%;
-  min-width: 45%;
-  margin: 15px 25px 3px 25px;
-  border: 1px solid rgb(173, 58, 58);
-}
-
-#pic-date {
-  font-size: 0.7rem;
-  color: rgb(200,200,200);
-}
-
-footer {
-  display: block;
-  margin-top: auto;
-  max-height: 3vh;
-  margin-bottom: 0.5rem;
-  text-align: center;
-  font-size: 0.7rem;
 }
 
 /* mission status styling */
@@ -118,6 +95,106 @@ footer {
 /* label for each item in the rover specs list */
 .label {
   font-weight: bold;
+}
+
+.pic-container {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 5px;
+  margin-bottom: 1rem;
+  justify-content: center;
+  justify-items: center;
+  align-items: center;
+  background: rgba(0,0,0,0.2);
+  border: 4px solid white;
+  border-radius: 15px;
+  flex-grow: 1;
+}
+
+.img-date-box {
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  min-width: 50%;
+  margin: 15px 25px 3px 25px;
+}
+
+.img-container {
+  display: block;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid rgb(173, 58, 58);
+  min-width: 100%;
+}
+
+/* rover images */
+.photo {
+  display: block;
+  object-fit: cover;
+  max-width: 100%;
+  min-width: 100%;
+  transition: 0.25s ease-in-out;
+}
+
+.photo:hover {
+  transform: scale(1.2);
+}
+
+#pic-date {
+  font-size: 0.7rem;
+  color: rgb(200,200,200);
+  /* width: auto; */
+  text-align: center;
+}
+
+.modal {
+  background: rgba(0,0,0,0.5);
+  opacity: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  border: none;
+  transition: 0.25s ease-in-out;
+  z-index: 1;
+}
+
+.modal.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal p {
+  color: white;
+  font-size: 2rem;
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.full-img {
+  position: absolute;
+  height: 80%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.5);
+  transition: 0.25s ease-in-out;
+}
+
+.full-img.open {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+footer {
+  display: block;
+  margin-top: auto;
+  max-height: 3vh;
+  margin-bottom: 0.5rem;
+  text-align: center;
+  font-size: 0.7rem;
 }
 
 /* loading message popup when rover btn clicked */
@@ -138,20 +215,14 @@ footer {
   font-weight: bolder;
 }
 
-/* rover name above specs */
-.specs-title {
-  text-transform: uppercase;
-  color: rgb(173, 58, 58);
-  font-size: 1.2rem;
-  font-weight: bold;
-}
-
 
 
 /* -------------------  TABLET  --------------------- */
 @media (min-width: 768px) {
-  /* use mobile */
-
+  .img-date-box {
+    max-width: 40%;
+    min-width: 40%;
+  }
 }
 
 /* -------------------  DESKTOP  -------------------- */
@@ -165,8 +236,9 @@ footer {
     flex-grow: 1;
   }
 
-  img {
-    max-width: 20%;
+  .img-date-box {
+    max-width: 25%;
+    min-width: 25%;
   }
 }
 

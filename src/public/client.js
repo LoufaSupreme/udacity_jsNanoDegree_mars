@@ -35,23 +35,22 @@ const App = (state) => {
 
     return `
         <header></header>
+        ${makeModal()}
         <main>
             ${Header(state.get('header').title)}
-            <section>
+            <section class="btn-container">
                 ${makeButtons(rovers)}
             </section>
-            <section>
+            <section class="specs-container">
                 ${writeMessage(loading_msg)}
                 ${roverSpecs(manifest)}
             </section>
             <section>
-                ${daysOfPhotos(photoHistory)}
+                ${showPhotos(photoHistory)}
             </section>
              <footer>Copyright © Davis Innovations | Data from NASA</footer>
         </main>
     `
-    // ${roverPics(roverPhotos)}
-
 }
 
 
@@ -101,7 +100,7 @@ const ImageOfTheDay = (apod) => {
 // displays manifest info for the selected rover
 const roverSpecs = (manifest) => {
     if (!manifest) {
-        return "<div></div>";
+        return "";
     }
     
     const launch_date = new Date(manifest.launch_date);
@@ -138,42 +137,46 @@ const roverSpecs = (manifest) => {
     `)
 }
 
-// displays images from the selected rover
-const roverPics = (roverPhotos) => {
-    if (!roverPhotos) {
-        return "<div></div>";
-    }
-    else {
-        const picsArray = roverPhotos.data.latest_photos;
-        const pics = picsArray
+// takes an array of image objects from Nasa and returns html
+const imgHandler = (photo_array) => {
+    const pics = photo_array
             .map(pic => {
                 return (`
-                    <img src="${pic.img_src}" class="photo" title="Sol ${pic.sol} from ${pic.rover.name}'s ${pic.camera.name}"/>
-                    <div id="pic-date">${pic.earth_date}</div>
+                    <div class="img-date-box">
+                        <div class="img-container">
+                            <img src="${pic.img_src}" class="photo" title="Sol ${pic.sol} from ${pic.rover.name}'s ${pic.camera.name}"/>
+                        </div>
+                        <div id="pic-date">${pic.earth_date}</div>
+                    </div>
                 `);
             })
             .reduce((html, img) => {
                 return html + img;
             },'');
 
-        return (`
-                <div class="pic-container">${pics}</div>
-            `);
+    return (`
+            <div class="pic-container">${pics}</div>
+        `);
+}
+
+// displays "latest_photos" from the selected rover
+const latestPhotos = (roverPhotos) => {
+    if (!roverPhotos) {
+        return "";
+    }
+    else {
+        const picsArray = roverPhotos.data.latest_photos;
+        return imgHandler(picsArray);
     }
 }
 
-const daysOfPhotos = (photoHistory) => {
+// displays array of photos from a rover:
+const showPhotos = (photoHistory) => {
     if (photoHistory.length === 0) {
-        return "<div></div>";
+        return "";
     }
     else {
-        const pics = photoHistory
-            .reduce((html, pic) => {
-                return html + `<img src="${pic.img_src}" class="photo" title="Sol ${pic.sol} from ${pic.rover.name}'s ${pic.camera.name}"/>
-                <span id="pic-date">${pic.earth_date}</span>`
-            },'');
-        
-        return `<div class="pic-container">${pics}</div>`;
+        return imgHandler(photoHistory);
     }
 }
 
@@ -196,6 +199,7 @@ const writeMessage = (msg) => {
     return `<div class="loading-msg">${msg}</div>`;
 }
 
+// create a loading message and add it to store
 const setMessage = (state, name) => {
     const msg = `Red Rover, Red Rover, Send ${mkSpan(name, 'loading-name')} On Over...[LOADING]`;
 
@@ -203,9 +207,21 @@ const setMessage = (state, name) => {
     updateStore(store, state);
 }
 
-// add event listeners to each button on the screen
+// create a modal div
+const makeModal = () => {
+    return `
+        <div class="modal">
+            <img src="" alt="" class="full-img"/>
+            <p class="caption"></p>
+        </div>
+    `;
+}
+
+// add event listeners to element on the screen
 // this function is called in render
 const addListeners = (root) => {
+    
+    // rover buttons:
     const buttons = root.querySelectorAll(".btn");
     buttons.forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -213,6 +229,28 @@ const addListeners = (root) => {
             roverCall(store, e.target.dataset.name);
         });
     });
+
+    // full sized image modal
+    const modal = root.querySelector('.modal');
+    modal.addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal')) {
+            modal.classList.remove('open');
+        }
+    });
+
+    // rover photos:
+    const photos = root.querySelectorAll(".photo");
+    photos.forEach(pic => {
+        pic.addEventListener('click', (e) => {
+            const modal = document.querySelector('.modal');
+            const modal_img = modal.querySelector('.full-img');
+            const caption = modal.querySelector('.caption');
+            modal.classList.add('open');
+            modal_img.classList.add('open');
+            modal_img.src = e.target.src;
+        })
+    })
+
 }
 
 // ------------------------------------------------------  HELPER FUNCTIONS
