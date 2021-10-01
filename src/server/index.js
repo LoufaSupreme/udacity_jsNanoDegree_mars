@@ -38,7 +38,7 @@ app.get('/latest_photos/:roverName', async (req, res) => {
     }
 })
 
-app.get('/photos/:roverName/:date/:duration/', async (req, res) => {
+app.get('/photos/days/:roverName/:date/:duration/', async (req, res) => {
     
     try {
         const roverName = req.params.roverName;
@@ -49,27 +49,63 @@ app.get('/photos/:roverName/:date/:duration/', async (req, res) => {
 
         for (let i = 0; i < duration; i++) {
 
-            // set date to the start_date plus i, up to duration.
+            // set target date to the start_date plus i, up to duration.
             let target_date = new Date(start_date);
             target_date.setDate(start_date.getDate() - i);
             date = `${target_date.getFullYear()}-${target_date.getMonth()+1}-${target_date.getDate()+1}`;
             
-            // fetch an array of photos from that day ("dayOfPhotos")
+            // fetch an array of photos from that day
             const url = `https://api.nasa.gov/mars-photos/api/v1/rovers/${roverName}/photos?earth_date=${date}&api_key=${process.env.API_KEY}`;
             
             const res = await fetch(url)
             const data = await res.json();
+            // push each image object to the photos array
             data.photos.forEach(pic => photos.push(pic));                
         }
         res.send(photos);
     } 
     catch (err) {
         console.log(err);
-    }
+    }            
+})
+
+app.get('/photos/amount/:roverName/:start_date/:amount', async (req, res) => {
+    
+    try {
+        const roverName = req.params.roverName;
+        const amount = req.params.amount;
+        const start_date = new Date(req.params.start_date);
+        
+        const photos = [];
+
+        let date_counter = 0;
+        while (photos.length < amount) {
+
+            // set target date to the start_date plus i, up to duration.
+            let target_date = new Date(start_date);
+            target_date.setDate(start_date.getDate() - date_counter);
+            date = `${target_date.getFullYear()}-${target_date.getMonth()+1}-${target_date.getDate()+1}`;
             
-        // add each pic obj to the photos array
-        // console.log(dayOfPhotos)
-        // dayOfPhotos.forEach(pic => photos.push(pic));
+            // fetch an array of photos from that day
+            const url = `https://api.nasa.gov/mars-photos/api/v1/rovers/${roverName}/photos?earth_date=${date}&api_key=${process.env.API_KEY}`;
+            
+            const res = await fetch(url)
+            const data = await res.json();
+            // push each image object to the photos array
+            data.photos.forEach(pic => {
+                if (photos.length < amount) {
+                    photos.push(pic)
+                } else {
+                    return;
+                }
+            });   
+            date_counter++;             
+        }
+        res.send(photos);
+    } 
+    catch (err) {
+        console.log(err);
+    }            
 })
 
 // rover manifest API endpoint:

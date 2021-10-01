@@ -43,7 +43,7 @@ const App = (state) => {
             <section>
                 ${daysOfPhotos(photoHistory)}
             </section>
-             <footer>Copywrite © Davis Innovations | Data from NASA</footer>
+             <footer>Copyright © Davis Innovations | Data from NASA</footer>
         </main>
     `
     // ${roverPics(roverPhotos)}
@@ -226,11 +226,22 @@ const getRoverPhotos = async (roverName) => {
 // API call to get several days worth of pictures starting from the rover's most recent day on Mars
 const getDaysOfPhotos = async (roverName, date, num_days) => {
 
-    const photos = await fetch(`http://localhost:3000/photos/${roverName}/${date}/${num_days}`)
+    const photos = await fetch(`http://localhost:3000/photos/days/${roverName}/${date}/${num_days}`)
         .then(res => res.json())
         .then(data => data)
         .catch(err => console.log(err));
     
+    return photos;
+}
+
+// API call to get a certain number of photos per rover, starting from a particular day.
+const getNumPhotos = async (roverName, date, amount) => {
+    
+    const photos = await fetch(`http://localhost:3000/photos/amount/${roverName}/${date}/${amount}`)
+        .then(res => res.json())
+        .then(data => data)
+        .catch(err => console.log(err));
+
     return photos;
 }
 
@@ -239,7 +250,8 @@ const getDaysOfPhotos = async (roverName, date, num_days) => {
 const roverCall = async (state, roverName) => {
     const manifest = await getManifest(roverName);
     const latest_date = manifest.latest_date;
-    const photos = await getDaysOfPhotos(roverName, latest_date, 5);
+    // const photos = await getDaysOfPhotos(roverName, latest_date, 5);
+    const photos = await getNumPhotos(roverName, latest_date, 12);
     const latest_photos = await getRoverPhotos(roverName);
     
     const promises = [latest_photos, manifest, photos];
