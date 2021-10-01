@@ -212,7 +212,7 @@ const makeModal = () => {
     return `
         <div class="modal">
             <img src="" alt="" class="full-img"/>
-            <p class="caption"></p>
+            <div class="caption"></div>
         </div>
     `;
 }
@@ -233,9 +233,9 @@ const addListeners = (root) => {
     // full sized image modal
     const modal = root.querySelector('.modal');
     modal.addEventListener('click', (e) => {
-        if (e.target.classList.contains('modal')) {
+        // if (e.target.classList.contains('modal')) {
             modal.classList.remove('open');
-        }
+        // }
     });
 
     // rover photos:
@@ -245,9 +245,21 @@ const addListeners = (root) => {
             const modal = document.querySelector('.modal');
             const modal_img = modal.querySelector('.full-img');
             const caption = modal.querySelector('.caption');
+            
+            // adjust modal
             modal.classList.add('open');
             modal_img.classList.add('open');
             modal_img.src = e.target.src;
+
+            //adjust modal caption
+            const photos = store.get('photoHistory');
+            const photo = photos.filter((pic) => {
+                return pic.img_src === e.target.src;
+            });
+            caption.innerHTML = `
+                <p>Captured By: ${photo[0].rover.name}'s ${photo[0].camera.name}</p>
+                <p>Date: ${photo[0].earth_date} (Sol ${photo[0].sol})</p>
+            `;
         })
     })
 
