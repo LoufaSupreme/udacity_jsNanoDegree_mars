@@ -99,15 +99,23 @@ const roverSpecs = (manifest) => {
     if (!manifest) {
         return "<div></div>";
     }
+    
+    const launch_date = new Date(manifest.launch_date);
+    const land_date = new Date(manifest.landing_date);
+    const latest_date = new Date(manifest.latest_date);
+    const flight_time = (land_date.getTime() - launch_date.getTime()) / (1000*60*60*24);
+    const mission_duration = (latest_date.getTime() - land_date.getTime()) / (1000*60*60*24);
 
     return (`
         <h3>Red Rover, Red Rover, Send ${manifest.name} On Over!</h3>
         <ul>
-            <li>Launched from Earth: ${manifest.launch_date}</li>
-            <li>Landed on Mars: ${manifest.landing_date}</li>
+            <li>Launched from Earth: ${launch_date.toDateString()}</li>
+            <li>Landed on Mars: ${land_date.toDateString()}</li>
+            <li>Flight Time: ${flight_time} days</li>
+            <li>Latest Day on Mars: ${latest_date.toDateString()} (Sol ${formatNumber(manifest.latest_sol)})</li>
+            <li>Elapsed Mission Duration: ${formatNumber(mission_duration)} days</li>
             <li>Mission Status: ${manifest.status.replace(/^\w/, (c) => c.toUpperCase())}</li>
-            <li>Latest Day on Mars: ${manifest.latest_date} (Sol ${manifest.latest_sol})</li>
-            <li>Total Photos Taken: ${manifest.total_photos}</li>
+            <li>Total Photos Taken: ${formatNumber(manifest.total_photos)}</li>
         </ul>
     `)
 }
@@ -172,6 +180,13 @@ const addListeners = (root) => {
         });
     });
 }
+
+// ------------------------------------------------------  HELPER FUNCTIONS
+
+// source: https://blog.abelotech.com/posts/number-currency-formatting-javascript/
+function formatNumber(num) {
+    return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
+  }
 
 // ------------------------------------------------------  API CALLS
 
