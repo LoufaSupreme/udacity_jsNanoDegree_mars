@@ -84,11 +84,21 @@ app.get('/photos/amount/:roverName/:start_date/:amount', async (req, res) => {
             // set target date to the start_date plus i, up to duration.
             let target_date = new Date(start_date);
             target_date.setDate(start_date.getDate() - date_counter);
-            date = `${target_date.getFullYear()}-${target_date.getMonth()+1}-${target_date.getDate()+1}`;
+
+            // check that calculated date is a valid date.  If not, continue subtracting days until it is a valid date:
+            if (isNaN(target_date.getDate())) {
+                console.log("invalid date");
+                date_counter++;
+                target_date = new Date(start_date);
+                target_date.setDate(start_date.getDate() - date_counter);
+            }
+
+            // add 1 to getMonth b/c of how stupid JS dates are:
+            date = `${target_date.getFullYear()}-${target_date.getMonth()+1}-${target_date.getDate()}`;
             
             // fetch an array of photos from that day
             const url = `https://api.nasa.gov/mars-photos/api/v1/rovers/${roverName}/photos?earth_date=${date}&api_key=${process.env.API_KEY}`;
-            
+
             const res = await fetch(url)
             const data = await res.json();
             // push each image object to the photos array
