@@ -1,5 +1,3 @@
-// ------------------------------------------------------  GLOBAL VARIABLES
-
 // global state of app:
 let store = Immutable.Map({
     header: { title: "PROJECT RED ROVER" },
@@ -7,6 +5,7 @@ let store = Immutable.Map({
     rovers: ['Curiosity', 'Opportunity', 'Spirit'],
     activeRover: 'None',
     roverPhotos: [],
+    photoSelection: 'latest',
     manifest: '',
     loading_msg: '',
 });
@@ -37,6 +36,7 @@ const App = (state) => {
     const loading_msg = state.get('loading_msg');
     const activeRover = state.get('activeRover');
 
+    // this is where the main content of the page is generated:
     return `
         <header></header>
         ${makeModal()}
@@ -164,17 +164,6 @@ const imgHandler = (photo_array) => {
         `);
 }
 
-// // displays "latest_photos" from the selected rover
-// const latestPhotos = (roverPhotos) => {
-//     if (!roverPhotos) {
-//         return "";
-//     }
-//     else {
-//         const picsArray = roverPhotos.data.latest_photos;
-//         return imgHandler(picsArray);
-//     }
-// }
-
 // create rover selection buttons on the screen
 const makeButtons = (rovers) => {
     const html = rovers.reduce((html, rover) => {
@@ -186,6 +175,8 @@ const makeButtons = (rovers) => {
     `);
 }
 
+// create buttons that change which rover photos are shown
+// only show the buttons if a rover is selected (i.e. activeRover is not None)
 const makePhotoFilterBtns = (activeRover) => {
     
     if (activeRover === 'None') {
@@ -199,7 +190,7 @@ const makePhotoFilterBtns = (activeRover) => {
     `
 }
 
-// display a loading message while API's fetch data:
+// display a loading message while the API fetches data:
 const writeMessage = (msg) => {
     if (!msg) {
         return '';
@@ -215,7 +206,7 @@ const setMessage = (state, name) => {
     updateStore(store, state);
 }
 
-// create a modal div
+// create a modal div (for full sized image viewing)
 const makeModal = () => {
     return `
         <div class="modal">
@@ -239,6 +230,7 @@ const addListeners = (root, state) => {
     });
 
     // full sized image modal
+    // set to hidden if clicked on by removing class "open"
     const modal = root.querySelector('.modal');
     modal.addEventListener('click', (e) => {
         // if (e.target.classList.contains('modal')) {
@@ -308,23 +300,35 @@ const showPhotos = (photos) => {
     }
 }
 
+// runs if "latest Photos", "50 Photos" or "3 Days of Photos" btns are clicked.
+// grabs photos from a different API path
 const filterPhotos = async (tag, state) => {
     const roverName = state.get('manifest').name;
-    const latest_date = state.get('manifest').latest_date;
+    let latest_date = state.get('manifest').latest_date;
+
+    const photoArray = state.get('roverPhotos');
+
+    // gets the NEXT 3 days of photos if clicked again:
+    if (photoArray.length > 0 && state.get('photoSelection') != 'latest') {
+        latest_date = photoArray[photoArray.length-1].earth_date;
+    }
 
     if (tag === 'latest') {
         const photos = await getLatestPhotos(roverName);
         state = state.set('roverPhotos', photos);
+        state = state.set('photoSelection', tag);
         updateStore(store, state);    
     } 
     else if (tag === 'number') {
         const photos = await getNumPhotos(roverName, latest_date, 50);
         state = state.set('roverPhotos', photos);
+        state = state.set('photoSelection', tag);
         updateStore(store, state);    
     }
     else if (tag === 'days') {
         const photos = await getDaysOfPhotos(roverName, latest_date, 3);
         state = state.set('roverPhotos', photos);
+        state = state.set('photoSelection', tag);
         updateStore(store, state);    
     }
     else {
