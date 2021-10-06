@@ -1,26 +1,30 @@
+// ------------------------------------------------------  GLOBAL VARIABLES
+
+// global state of app:
 let store = Immutable.Map({
     header: { title: "PROJECT RED ROVER" },
     apod: '',
     rovers: ['Curiosity', 'Opportunity', 'Spirit'],
-    roverPhotos: '',
-    photoHistory: [],
+    roverPhotos: [],
+    // photoHistory: [],
     manifest: '',
     loading_msg: '',
 });
 
-// add our markup to the page
+// grab main html element to add content to:
 const root = document.getElementById('root');
 
+// update app's state:
 const updateStore = (state, newState) => {
     store = state.merge(newState)
     render(root, store)
 }
 
+// render html:
 const render = async (root, state) => {
     root.innerHTML = App(state);
     addListeners(root);
 }
-
 
 // create content
 const App = (state) => {
@@ -46,7 +50,7 @@ const App = (state) => {
                 ${roverSpecs(manifest)}
             </section>
             <section>
-                ${showPhotos(photoHistory)}
+                ${showPhotos(roverPhotos)}
             </section>
              <footer>Copyright © Davis Innovations | Data from NASA</footer>
         </main>
@@ -159,24 +163,24 @@ const imgHandler = (photo_array) => {
         `);
 }
 
-// displays "latest_photos" from the selected rover
-const latestPhotos = (roverPhotos) => {
-    if (!roverPhotos) {
-        return "";
-    }
-    else {
-        const picsArray = roverPhotos.data.latest_photos;
-        return imgHandler(picsArray);
-    }
-}
+// // displays "latest_photos" from the selected rover
+// const latestPhotos = (roverPhotos) => {
+//     if (!roverPhotos) {
+//         return "";
+//     }
+//     else {
+//         const picsArray = roverPhotos.data.latest_photos;
+//         return imgHandler(picsArray);
+//     }
+// }
 
 // displays array of photos from a rover:
-const showPhotos = (photoHistory) => {
-    if (photoHistory.length === 0) {
+const showPhotos = (photos) => {
+    if (photos.length === 0) {
         return "";
     }
     else {
-        return imgHandler(photoHistory);
+        return imgHandler(photos);
     }
 }
 
@@ -252,12 +256,12 @@ const addListeners = (root) => {
             modal_img.src = e.target.src;
 
             //adjust modal caption
-            const photos = store.get('photoHistory');
+            const photos = store.get('roverPhotos');
             const photo = photos.filter((pic) => {
                 return pic.img_src === e.target.src;
             });
             caption.innerHTML = `
-                <p>Captured By: ${photo[0].rover.name}'s ${photo[0].camera.name}</p>
+                <p>Captured By: ${photo[0].rover.name}'s ${photo[0].camera.name} (${photo[0].camera.full_name})</p>
                 <p>Date: ${photo[0].earth_date} (Sol ${photo[0].sol})</p>
             `;
         })
@@ -330,13 +334,13 @@ const getManifest = async (roverName) => {
 }
 
 // API Call to get rover "latest_photos"
-const getRoverPhotos = async (roverName) => {    
+const getLatestPhotos = async (roverName) => {    
 
     console.log(`Fetching latest photos for Rover ${roverName}`);
     
     const roverPhotos = await fetch(`http://localhost:3000/latest_photos/${roverName}`)
         .then(res => res.json())
-        .then(data => data)
+        .then(res => res.data.latest_photos)
         .catch(err => console.log(err));
     
     return roverPhotos;
@@ -368,28 +372,29 @@ const getNumPhotos = async (roverName, date, amount) => {
     return photos;
 }
 
-// calls the NASA API 3+ times, once for "latest photos", once for manifest and multiple times for an array of photos across several days 
-// then takes the results of those API calls (promises) and updates the store once, so only one render.
+// calls the NASA API multiple times 
+// then takes the results of those API calls (promises) and updates the store once, so that there is only one re-render of the page.
 const roverCall = async (state, roverName) => {
     const manifest = await getManifest(roverName);
     const latest_date = manifest.latest_date;
     // const photos = await getDaysOfPhotos(roverName, latest_date, 5);
-    const photos = await getNumPhotos(roverName, latest_date, 12);
-    const latest_photos = await getRoverPhotos(roverName);
+    // const photos = await getNumPhotos(roverName, latest_date, 12);
+    const photos = await getLatestPhotos(roverName);
     
-    const promises = [latest_photos, manifest, photos];
+    const promises = [manifest, photos];
     Promise.all(promises)
         .then(results => {
-            state = state.set('roverPhotos', results[0]);
-            state = state.set('manifest', results[1]);
-            state = state.set('photoHistory', results[2]);
+            state = state.set('manifest', results[0]);
+            state = state.set('roverPhotos', results[1]);
+            // state = state.set('photoHistory', results[2]);
             state = state.set('loading_msg', '');
             updateStore(store, state);
         })
         .catch(err => console.log(err));    
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////
+
+// ------------------------------------------------------  RUN ON LOAD
 
 // listening for load event because page should load before any JS is called
 window.addEventListener('load', () => {

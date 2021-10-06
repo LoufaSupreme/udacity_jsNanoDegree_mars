@@ -14,7 +14,7 @@ body {
   background-image: url('../images/stars.jpg');
   background-repeat:repeat;
   /* background-size: 100% auto; */
-  background-size:contain;
+  background-size:initial;
   background-color: black;
 }
 
@@ -58,6 +58,13 @@ h1 {
   align-items: center;
   justify-items: center;
   cursor: pointer;
+  transition: 0.25s ease-in-out;
+  flex:1;
+}
+
+.btn:hover {
+  background-color: rgba(255,255,255,0.15);
+  font-size: 2.2rem;
 }
 
 h3 {

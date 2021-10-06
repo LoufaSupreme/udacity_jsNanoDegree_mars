@@ -27,7 +27,8 @@ app.get('/apod', async (req, res) => {
 app.get('/latest_photos/:roverName', async (req, res) => {
     const roverName = req.params.roverName;
     let now = new Date();
-    now = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+    // add 1 to month b/c JS dates are stupid:
+    now = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}`;
 
     try {
         const data = await fetch(`https://api.nasa.gov/mars-photos/api/v1/rovers/${roverName}/latest_photos?earth_date=${now}&api_key=${process.env.API_KEY}`)
