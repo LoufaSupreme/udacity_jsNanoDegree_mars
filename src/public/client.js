@@ -37,6 +37,7 @@ const App = (state) => {
     const loading_msg = state.get('loading_msg');
     const activeRover = state.get('activeRover');
     const photoSelection = state.get('photoSelection');
+    const photoAmount = state.get('photoAmount');
 
     // this is where the main content of the page is generated:
     return `
@@ -50,13 +51,17 @@ const App = (state) => {
             <section class="specs-container">
                 ${writeMessage(loading_msg)}
                 ${roverSpecs(manifest)}
+            </section>
+            <div class="filter-btn-container">
                 ${makePhotoFilterBtns(activeRover)}
-            </section>
+            </div>
             <section>
-                ${showPhotos(roverPhotos)}
-                ${makeMoreBtn(photoSelection)}
+                ${showPhotos(roverPhotos, photoAmount)}
             </section>
-             <footer>Copyright © Davis Innovations | Data from NASA</footer>
+            <div class="more-btn-container">
+                ${makeMoreBtn(photoSelection)}
+            </div>
+            <footer>Copyright © Davis Innovations | Data from NASA</footer>
         </main>
     `
 }
@@ -146,21 +151,22 @@ const roverSpecs = (manifest) => {
 }
 
 // takes an array of image objects from Nasa and returns html
-const imgHandler = (photo_array) => {
+const imgHandler = (photo_array, amount) => {
     const pics = photo_array
-            .map(pic => {
-                return (`
-                    <div class="img-date-box">
-                        <div class="img-container">
-                            <img src="${pic.img_src}" class="photo" title="Sol ${pic.sol} from ${pic.rover.name}'s ${pic.camera.name}"/>
-                        </div>
-                        <div id="pic-date">${pic.earth_date}</div>
+        .slice(-amount) 
+        .map(pic => {
+            return (`
+                <div class="img-date-box">
+                    <div class="img-container">
+                        <img src="${pic.img_src}" class="photo" title="Sol ${pic.sol} from ${pic.rover.name}'s ${pic.camera.name}"/>
                     </div>
-                `);
-            })
-            .reduce((html, img) => {
-                return html + img;
-            },'');
+                    <div id="pic-date">${pic.earth_date}</div>
+                </div>
+            `);
+        })
+        .reduce((html, img) => {
+            return html + img;
+        },'');
 
     return (`
             <div class="pic-container">${pics}</div>
@@ -192,15 +198,17 @@ const makePhotoFilterBtns = (activeRover) => {
     `
 }
 
-// makes a Next Page button at bottom of page
-// calls the getMorePhotos function
+// makes a Next Page and Prev Page button at bottom of page
+// calls the getNextPage and getPrevPage function
 const makeMoreBtn = (tag) => {
     if (tag != 'all') {
         return '';
     }
 
     return `
-        <button class="more-btn" value="more" onclick="getMorePhotos(store)">Next Page</button>
+        <button class="prev-btn" value="prev" onclick="getPrevPage(store)">Prev Page</button>
+
+        <button class="next-btn" value="next" onclick="getNextPage(store)">Next Page</button>
     `;
 }
 
@@ -305,12 +313,12 @@ function wrapStatus(status) {
 }
 
 // displays array of photos from a rover:
-const showPhotos = (photos) => {
+const showPhotos = (photos, amount) => {
     if (photos.length === 0) {
         return "";
     }
     else {
-        return imgHandler(photos);
+        return imgHandler(photos, amount);
     }
 }
 
@@ -342,7 +350,7 @@ const filterPhotos = async (tag, state) => {
 
 // activated when the Next Page button is clicked
 // gets the next set of photos from the rover by making another API call
-const getMorePhotos = async (state) => {
+const getNextPage = async (state) => {
     const roverName = state.get('manifest').name;
     const current_photos = state.get('roverPhotos');
     const latest_date = current_photos[current_photos.length-1].earth_date;
@@ -357,11 +365,27 @@ const getMorePhotos = async (state) => {
     const filteredPhotos = photos.filter(pic => !current_photos.includes(pic));
 
     // pair it down to just the first results up to the specified number of photos to display:
-    console.log('Pairing down to specified display number.')
-    const finalPhotos = filteredPhotos.slice(0, -numPhotos)
+    console.log('Pairing down to specified display number.');
+    const finalPhotos = filteredPhotos.slice(0, -numPhotos);
 
-    state = state.set('roverPhotos', finalPhotos);
+    finalPhotos.forEach(pic => current_photos.push(pic));
+
+    state = state.set('roverPhotos', current_photos);
     updateStore(store, state);    
+}
+
+// deletes the last 25 (or w/e photoAmount is set to) photos from the array
+const getPrevPage = (state) => {
+    const deleteNum = state.get('photoAmount');
+    let photos = state.get('roverPhotos');
+    
+    // if the photo array is > 25 pics, then delete the last 25 images
+    if (photos.length > deleteNum) {
+        photos = photos.splice(0, photos.length-deleteNum);
+    }
+    
+    state = state.set('roverPhotos', photos);
+    updateStore(store, state);
 }
 
 // ------------------------------------------------------  API CALLS

@@ -104,6 +104,11 @@ ul {
   font-weight: bold;
 }
 
+.filter-btn-container {
+  display: flex;
+  justify-content: center;
+}
+
 .pic-container {
   display: flex;
   flex-wrap: wrap;
@@ -205,6 +210,12 @@ ul {
 
 .full-img.open {
   transform: translate(-50%, -50%) scale(1);
+}
+
+.more-btn-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
 }
 
 footer {
