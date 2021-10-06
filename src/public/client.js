@@ -6,6 +6,7 @@ let store = Immutable.Map({
     activeRover: 'None',
     roverPhotos: [],
     photoSelection: 'latest',
+    photoAmount: 25,
     manifest: '',
     loading_msg: '',
 });
@@ -35,6 +36,7 @@ const App = (state) => {
     const manifest = state.get('manifest');
     const loading_msg = state.get('loading_msg');
     const activeRover = state.get('activeRover');
+    const photoSelection = state.get('photoSelection');
 
     // this is where the main content of the page is generated:
     return `
@@ -52,6 +54,7 @@ const App = (state) => {
             </section>
             <section>
                 ${showPhotos(roverPhotos)}
+                ${makeMoreBtn(photoSelection)}
             </section>
              <footer>Copyright © Davis Innovations | Data from NASA</footer>
         </main>
@@ -185,9 +188,20 @@ const makePhotoFilterBtns = (activeRover) => {
 
     return `
         <button class="filter-btn" value="latest" onclick="filterPhotos(this.value, store)">Latest Photos</button>
-        <button class="filter-btn" value="number" onclick="filterPhotos(this.value, store)">50 Photos</button>
-        <button class="filter-btn" value="days" onclick="filterPhotos(this.value, store)">3 Days of Photos</button>
+        <button class="filter-btn" value="all" onclick="filterPhotos(this.value, store)">All Photos</button>
     `
+}
+
+// makes a Next Page button at bottom of page
+// calls the getMorePhotos function
+const makeMoreBtn = (tag) => {
+    if (tag != 'all') {
+        return '';
+    }
+
+    return `
+        <button class="more-btn" value="more" onclick="getMorePhotos(store)">Next Page</button>
+    `;
 }
 
 // display a loading message while the API fetches data:
@@ -304,29 +318,19 @@ const showPhotos = (photos) => {
 // grabs photos from a different API path
 const filterPhotos = async (tag, state) => {
     const roverName = state.get('manifest').name;
-    let latest_date = state.get('manifest').latest_date;
+    const latest_date = state.get('manifest').latest_date;
+    const numPhotosToDisplay = state.get('photoAmount');
 
-    const photoArray = state.get('roverPhotos');
-
-    // gets the NEXT 3 days of photos if clicked again:
-    if (photoArray.length > 0 && state.get('photoSelection') != 'latest') {
-        latest_date = photoArray[photoArray.length-1].earth_date;
-    }
-
+    // show latest photos:
     if (tag === 'latest') {
         const photos = await getLatestPhotos(roverName);
         state = state.set('roverPhotos', photos);
         state = state.set('photoSelection', tag);
         updateStore(store, state);    
     } 
-    else if (tag === 'number') {
-        const photos = await getNumPhotos(roverName, latest_date, 50);
-        state = state.set('roverPhotos', photos);
-        state = state.set('photoSelection', tag);
-        updateStore(store, state);    
-    }
-    else if (tag === 'days') {
-        const photos = await getDaysOfPhotos(roverName, latest_date, 3);
+    // show all photos (up to numPhotosToDisplay):
+    else if (tag === 'all') {
+        const photos = await getNumPhotos(roverName, latest_date, numPhotosToDisplay);
         state = state.set('roverPhotos', photos);
         state = state.set('photoSelection', tag);
         updateStore(store, state);    
@@ -334,7 +338,30 @@ const filterPhotos = async (tag, state) => {
     else {
         return;
     }
+}
 
+// activated when the Next Page button is clicked
+// gets the next set of photos from the rover by making another API call
+const getMorePhotos = async (state) => {
+    const roverName = state.get('manifest').name;
+    const current_photos = state.get('roverPhotos');
+    const latest_date = current_photos[current_photos.length-1].earth_date;
+    const numPhotos = state.get('photoAmount');
+
+    // fetch twice the amount of photos, starting at the latest earth day of the photos currently shown
+    // fetching 2x the amount so that if we got 100% duplicates at first, we can remove them and still have 100% new photos left over
+    const photos = await getNumPhotos(roverName, latest_date, numPhotos*2);
+    
+    // filter returned photos array to remove photos already displayed:
+    console.log('Filtering out duplicate images.');
+    const filteredPhotos = photos.filter(pic => !current_photos.includes(pic));
+
+    // pair it down to just the first results up to the specified number of photos to display:
+    console.log('Pairing down to specified display number.')
+    const finalPhotos = filteredPhotos.slice(0, -numPhotos)
+
+    state = state.set('roverPhotos', finalPhotos);
+    updateStore(store, state);    
 }
 
 // ------------------------------------------------------  API CALLS
@@ -356,6 +383,8 @@ const getImageOfTheDay = (state) => {
 // API call to get rover manifest info
 const getManifest = async (roverName) => {
 
+    console.log(`Fetching Manifest for Rover ${roverName}`);
+
     const manifest = await fetch(`http://localhost:3000/manifests/${roverName}`)
         .then(res => res.json())
         .then(res => {
@@ -373,6 +402,7 @@ const getManifest = async (roverName) => {
         })
         .catch(err => console.log(err));
 
+    console.log('Manifest Received.')
     return manifest;
 }
 
@@ -386,6 +416,7 @@ const getLatestPhotos = async (roverName) => {
         .then(res => res.data.latest_photos)
         .catch(err => console.log(err));
     
+    console.log('Latest Photos Received.')
     return roverPhotos;
 }
 
@@ -399,6 +430,7 @@ const getDaysOfPhotos = async (roverName, date, num_days) => {
         .then(data => data)
         .catch(err => console.log(err));
     
+    console.log(`${num_days} days of photos received.`)
     return photos;
 }
 
@@ -412,17 +444,15 @@ const getNumPhotos = async (roverName, date, amount) => {
         .then(data => data)
         .catch(err => console.log(err));
 
+    console.log(`${amount} photos received.`)
     return photos;
 }
 
 // calls the NASA API multiple times 
 // then takes the results of those API calls (promises) and updates the store once, so that there is only one re-render of the page.
 const roverCall = async (state, roverName) => {
-    const manifest = await getManifest(roverName);
-    const latest_date = manifest.latest_date;
-    // const photos = await getDaysOfPhotos(roverName, latest_date, 5);
-    // const photos = await getNumPhotos(roverName, latest_date, 12);
-    const photos = await getLatestPhotos(roverName);
+    const manifest = getManifest(roverName);
+    const photos = getLatestPhotos(roverName);
     
     const promises = [manifest, photos];
     Promise.all(promises)
