@@ -5,8 +5,8 @@ let store = Immutable.Map({
     header: { title: "PROJECT RED ROVER" },
     apod: '',
     rovers: ['Curiosity', 'Opportunity', 'Spirit'],
+    activeRover: 'None',
     roverPhotos: [],
-    // photoHistory: [],
     manifest: '',
     loading_msg: '',
 });
@@ -23,7 +23,7 @@ const updateStore = (state, newState) => {
 // render html:
 const render = async (root, state) => {
     root.innerHTML = App(state);
-    addListeners(root);
+    addListeners(root, state);
 }
 
 // create content
@@ -33,9 +33,9 @@ const App = (state) => {
     const rovers = state.get('rovers');
     const apod = state.get('apod');
     const roverPhotos = state.get('roverPhotos');
-    const photoHistory = state.get('photoHistory');
     const manifest = state.get('manifest');
     const loading_msg = state.get('loading_msg');
+    const activeRover = state.get('activeRover');
 
     return `
         <header></header>
@@ -48,6 +48,7 @@ const App = (state) => {
             <section class="specs-container">
                 ${writeMessage(loading_msg)}
                 ${roverSpecs(manifest)}
+                ${makePhotoFilterBtns(activeRover)}
             </section>
             <section>
                 ${showPhotos(roverPhotos)}
@@ -174,16 +175,6 @@ const imgHandler = (photo_array) => {
 //     }
 // }
 
-// displays array of photos from a rover:
-const showPhotos = (photos) => {
-    if (photos.length === 0) {
-        return "";
-    }
-    else {
-        return imgHandler(photos);
-    }
-}
-
 // create rover selection buttons on the screen
 const makeButtons = (rovers) => {
     const html = rovers.reduce((html, rover) => {
@@ -193,6 +184,19 @@ const makeButtons = (rovers) => {
     return (`
         <div class="btn-container">${html}</div>
     `);
+}
+
+const makePhotoFilterBtns = (activeRover) => {
+    
+    if (activeRover === 'None') {
+        return '';
+    }
+
+    return `
+        <button class="filter-btn" value="latest" onclick="filterPhotos(this.value, store)">Latest Photos</button>
+        <button class="filter-btn" value="number" onclick="filterPhotos(this.value, store)">50 Photos</button>
+        <button class="filter-btn" value="days" onclick="filterPhotos(this.value, store)">3 Days of Photos</button>
+    `
 }
 
 // display a loading message while API's fetch data:
@@ -223,14 +227,14 @@ const makeModal = () => {
 
 // add event listeners to element on the screen
 // this function is called in render
-const addListeners = (root) => {
+const addListeners = (root, state) => {
     
     // rover buttons:
     const buttons = root.querySelectorAll(".btn");
     buttons.forEach(btn => {
         btn.addEventListener('click', (e) => {
-            setMessage(store, e.target.dataset.name);
-            roverCall(store, e.target.dataset.name);
+            setMessage(state, e.target.dataset.name);
+            roverCall(state, e.target.dataset.name);
         });
     });
 
@@ -256,7 +260,7 @@ const addListeners = (root) => {
             modal_img.src = e.target.src;
 
             //adjust modal caption
-            const photos = store.get('roverPhotos');
+            const photos = state.get('roverPhotos');
             const photo = photos.filter((pic) => {
                 return pic.img_src === e.target.src;
             });
@@ -292,6 +296,41 @@ function wrapStatus(status) {
     } else {
         return mkSpan(mission_status, 'inactive');
     }
+}
+
+// displays array of photos from a rover:
+const showPhotos = (photos) => {
+    if (photos.length === 0) {
+        return "";
+    }
+    else {
+        return imgHandler(photos);
+    }
+}
+
+const filterPhotos = async (tag, state) => {
+    const roverName = state.get('manifest').name;
+    const latest_date = state.get('manifest').latest_date;
+
+    if (tag === 'latest') {
+        const photos = await getLatestPhotos(roverName);
+        state = state.set('roverPhotos', photos);
+        updateStore(store, state);    
+    } 
+    else if (tag === 'number') {
+        const photos = await getNumPhotos(roverName, latest_date, 50);
+        state = state.set('roverPhotos', photos);
+        updateStore(store, state);    
+    }
+    else if (tag === 'days') {
+        const photos = await getDaysOfPhotos(roverName, latest_date, 3);
+        state = state.set('roverPhotos', photos);
+        updateStore(store, state);    
+    }
+    else {
+        return;
+    }
+
 }
 
 // ------------------------------------------------------  API CALLS
@@ -349,7 +388,7 @@ const getLatestPhotos = async (roverName) => {
 // API call to get several days worth of pictures starting from the rover's most recent day on Mars
 const getDaysOfPhotos = async (roverName, date, num_days) => {
     
-    console.log(`Fetching ${num_days} worth of images for Rover ${roverName}`);
+    console.log(`Fetching ${num_days}days worth of images for Rover ${roverName}`);
 
     const photos = await fetch(`http://localhost:3000/photos/days/${roverName}/${date}/${num_days}`)
         .then(res => res.json())
@@ -386,8 +425,8 @@ const roverCall = async (state, roverName) => {
         .then(results => {
             state = state.set('manifest', results[0]);
             state = state.set('roverPhotos', results[1]);
-            // state = state.set('photoHistory', results[2]);
             state = state.set('loading_msg', '');
+            state = state.set('activeRover', roverName);
             updateStore(store, state);
         })
         .catch(err => console.log(err));    
