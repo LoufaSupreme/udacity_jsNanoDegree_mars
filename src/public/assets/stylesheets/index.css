@@ -218,6 +218,12 @@ ul {
   margin-bottom: 1rem;
 }
 
+#page-num {
+  margin: 0 0.5rem 0 0.5rem;
+  font-size: 0.7rem;
+  color:rgb(173, 58, 58);
+}
+
 footer {
   display: block;
   margin-top: auto;

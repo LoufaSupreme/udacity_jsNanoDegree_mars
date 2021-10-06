@@ -59,7 +59,7 @@ const App = (state) => {
                 ${showPhotos(roverPhotos, photoAmount)}
             </section>
             <div class="more-btn-container">
-                ${makeMoreBtn(photoSelection)}
+                ${makeMoreBtn(state)}
             </div>
             <footer>Copyright © Davis Innovations | Data from NASA</footer>
         </main>
@@ -200,13 +200,20 @@ const makePhotoFilterBtns = (activeRover) => {
 
 // makes a Next Page and Prev Page button at bottom of page
 // calls the getNextPage and getPrevPage function
-const makeMoreBtn = (tag) => {
+const makeMoreBtn = (state) => {
+    const tag = state.get('photoSelection');
+    const tot_photos = state.get('manifest').total_photos;
+    const photos = state.get('roverPhotos');
+    const num_photos = state.get('photoAmount');
+    
     if (tag != 'all') {
         return '';
     }
 
     return `
         <button class="prev-btn" value="prev" onclick="getPrevPage(store)">Prev Page</button>
+
+        <span id="page-num">Photos ${photos.length-num_photos+1}-${photos.length} of ${formatNumber(tot_photos)} </span>
 
         <button class="next-btn" value="next" onclick="getNextPage(store)">Next Page</button>
     `;
@@ -383,7 +390,7 @@ const getPrevPage = (state) => {
     if (photos.length > deleteNum) {
         photos = photos.splice(0, photos.length-deleteNum);
     }
-    
+
     state = state.set('roverPhotos', photos);
     updateStore(store, state);
 }
