@@ -56,7 +56,7 @@ const App = (state) => {
                 ${makePhotoFilterBtns(activeRover)}
             </div>
             <section>
-                ${showPhotos(roverPhotos, photoAmount)}
+                ${showPhotos(roverPhotos, photoAmount, photoSelection)}
             </section>
             <div class="more-btn-container">
                 ${makeMoreBtn(state)}
@@ -123,35 +123,37 @@ const roverSpecs = (manifest) => {
     const mission_duration = (latest_date.getTime() - land_date.getTime()) / (1000*60*60*24);
 
     return (`
-        <div class="specs-title">Mars Rover: ${manifest.name}</div>
-        <ul>
-            <li>
-                ${mkSpan('Launched from Earth:', 'label')} ${launch_date.toDateString()}
-            </li>
-            <li>
-                ${mkSpan('Landed on Mars:', 'label')} ${land_date.toDateString()}
-            </li>
-            <li>
-                ${mkSpan('Flight Time:','label')} ${flight_time} days
-            </li>
-            <li>
-                ${mkSpan('Latest Day on Mars:','label')} ${latest_date.toDateString()} (Sol ${formatNumber(manifest.latest_sol)})
-            </li>
-            <li>
-                ${mkSpan('Elapsed Mission Duration:','label')} ${formatNumber(mission_duration)} days (${(mission_duration / 365).toFixed(1)} years)
-            </li>
-            <li>
-                ${mkSpan('Mission Status:','label')} ${wrapStatus(manifest.status)}
-            </li>
-            <li>
-                ${mkSpan('Total Photos Taken:','label')} ${formatNumber(manifest.total_photos)}
-            </li>
-        </ul>
+        <div>
+            <div class="specs-title">Mars Rover: ${manifest.name}</div>
+            <ul>
+                <li>
+                    ${mkSpan('Launched from Earth:', 'label')} ${launch_date.toDateString()}
+                </li>
+                <li>
+                    ${mkSpan('Landed on Mars:', 'label')} ${land_date.toDateString()}
+                </li>
+                <li>
+                    ${mkSpan('Flight Time:','label')} ${flight_time} days
+                </li>
+                <li>
+                    ${mkSpan('Latest Day on Mars:','label')} ${latest_date.toDateString()} (Sol ${formatNumber(manifest.latest_sol)})
+                </li>
+                <li>
+                    ${mkSpan('Elapsed Mission Duration:','label')} ${formatNumber(mission_duration)} days (${(mission_duration / 365).toFixed(1)} years)
+                </li>
+                <li>
+                    ${mkSpan('Mission Status:','label')} ${wrapStatus(manifest.status)}
+                </li>
+                <li>
+                    ${mkSpan('Total Photos Taken:','label')} ${formatNumber(manifest.total_photos)}
+                </li>
+            </ul>
+        </div>
     `)
 }
 
 // takes an array of image objects from Nasa and returns html
-const imgHandler = (photo_array, amount) => {
+const imgHandler = (photo_array, amount, photoSelection) => {
     const pics = photo_array
         .slice(-amount) 
         .map(pic => {
@@ -169,7 +171,10 @@ const imgHandler = (photo_array, amount) => {
         },'');
 
     return (`
-            <div class="pic-container">${pics}</div>
+            <div class="pic-container">
+                ${photoLabel(photoSelection)}
+                ${pics}
+            </div>
         `);
 }
 
@@ -319,13 +324,29 @@ function wrapStatus(status) {
     }
 }
 
+const photoLabel = (photoSelection) => {
+    if (photoSelection === 'latest') {
+        return `
+            <div id="photo-box-label-container">
+                ${mkSpan('Latest Photos', 'photo-box-label')}
+            </div>
+        `;
+    } else {
+        return `
+            <div id="photo-box-label-container">
+                ${mkSpan('All Photos', 'photo-box-label')}
+            </div>
+        `;
+    }
+}
+
 // displays array of photos from a rover:
-const showPhotos = (photos, amount) => {
+const showPhotos = (photos, amount, photoSelection) => {
     if (photos.length === 0) {
         return "";
     }
     else {
-        return imgHandler(photos, amount);
+        return imgHandler(photos, amount, photoSelection);
     }
 }
 

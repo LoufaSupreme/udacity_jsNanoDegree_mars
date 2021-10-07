@@ -72,7 +72,9 @@ h3 {
 }
 
 .specs-container {
-  margin-bottom: 1rem;
+  margin: 1rem 0 2rem 0;
+  display: flex;
+  justify-content: center;
 }
 
 /* rover name above specs */
@@ -107,8 +109,21 @@ ul {
 .filter-btn-container {
   display: flex;
   justify-content: center;
+  cursor: pointer;
 }
 
+/* container for the label above the rover images */
+#photo-box-label-container {
+  margin-top: 1rem;
+}
+
+/* actual label above the rover images */
+.photo-box-label {
+  color:rgb(173, 58, 58);
+  text-transform: uppercase;
+}
+
+/* container that holds all rover photos */
 .pic-container {
   display: flex;
   flex-wrap: wrap;
@@ -123,6 +138,7 @@ ul {
   flex-grow: 1;
 }
 
+/* smaller container with 1 photo and 1 date */
 .img-date-box {
   display: flex;
   flex-direction: column;
@@ -131,7 +147,7 @@ ul {
   margin: 15px 25px 3px 25px;
 }
 
-/* container around rover images */
+/* container around each rover image (necessary for the grow effect) */
 .img-container {
   display: block;
   overflow: hidden;
@@ -140,7 +156,7 @@ ul {
   min-width: 100%;
 }
 
-/* rover images */
+/* the actual rover images */
 .photo {
   display: block;
   object-fit: cover;
@@ -216,6 +232,7 @@ ul {
   display: flex;
   justify-content: center;
   margin-bottom: 1rem;
+  cursor: pointer;
 }
 
 #page-num {
