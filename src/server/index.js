@@ -81,6 +81,7 @@ app.get('/photos/days/:roverName/:date/:duration/', async (req, res) => {
     }            
 })
 
+// API call to get a certain amount of rover photos
 app.get('/photos/amount/:roverName/:start_date/:amount', async (req, res) => {
     
     try {

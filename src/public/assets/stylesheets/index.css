@@ -114,6 +114,18 @@ ul {
 
 .filter-btn {
   cursor: pointer;
+  background-color: transparent;
+  color: rgb(150,150,150);
+  padding: 0.1rem 0.3rem 0.1rem 0.3rem;
+  margin: 0 0.2rem 0.2rem 0.2rem;
+  border: 1px solid rgb(100,100,100);
+  border-radius: 2px;
+}
+
+.filter-btn:hover {
+  background-color:rgba(173, 58, 58, 0.6);
+  color: white;
+  border: 1px solid white;
 }
 
 /* container for the label above the rover images */
@@ -127,12 +139,14 @@ ul {
 #photo-box-label-container > div {
   display: flex;
   justify-content: center;
+  margin-bottom: 0.5rem;
 }
 
 /* actual label above the rover images */
 .photo-box-label {
   color:white;
   text-transform: uppercase;
+  font-size: 1.5rem;
 }
 
 /* container that holds all rover photos */
@@ -240,16 +254,31 @@ ul {
   transform: translate(-50%, -50%) scale(1);
 }
 
+/* container that holds the prev page and next page btns */
 .more-btn-container {
   display: flex;
   justify-content: center;
   margin-bottom: 1rem;
 }
 
+/* prev page and next page for rover photos */
 .nav-btn {
   cursor: pointer;
+  background-color: transparent;
+  color: rgb(150,150,150);
+  margin: 0 0.2rem 0.2rem 0.2rem;
+  border: 1px solid rgb(100,100,100);
+  border-radius: 2px;;
+  padding: 0.1rem 0.3rem 0.1rem 0.3rem;
 }
 
+.nav-btn:hover {
+  background-color:rgba(173, 58, 58, 0.6);
+  color: white;
+  border: 1px solid white;
+}
+
+/* shows which pictures are being displayed */
 #page-num {
   display: flex;
   align-items: center;
