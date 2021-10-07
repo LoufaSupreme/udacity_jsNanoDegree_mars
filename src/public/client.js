@@ -131,13 +131,13 @@ const roverSpecs = (manifest) => {
                     ${mkSpan('Landed on Mars:', 'label')} ${land_date.toDateString()}
                 </li>
                 <li>
-                    ${mkSpan('Flight Time:','label')} ${flight_time.toFixed(1)} days
+                    ${mkSpan('Flight Time:','label')} ${Math.round(flight_time)} days
                 </li>
                 <li>
                     ${mkSpan('Latest Day on Mars:','label')} ${latest_date.toDateString()} (Sol ${formatNumber(manifest.latest_sol)})
                 </li>
                 <li>
-                    ${mkSpan('Elapsed Mission Duration:','label')} ${formatNumber(mission_duration)} days (${(mission_duration / 365).toFixed(1)} years)
+                    ${mkSpan('Elapsed Mission Duration:','label')} ${formatNumber(Math.round(mission_duration))} days (${(mission_duration / 365).toFixed(1)} years)
                 </li>
                 <li>
                     ${mkSpan('Mission Status:','label')} ${wrapStatus(manifest.status)}
