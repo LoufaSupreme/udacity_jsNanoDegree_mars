@@ -56,11 +56,9 @@ const App = (state) => {
                 ${makePhotoFilterBtns(activeRover)}
             </div>
             <section>
-                ${showPhotos(roverPhotos, photoAmount, photoSelection)}
+                ${showPhotos(state)}
             </section>
-            <div class="more-btn-container">
-                ${makeMoreBtn(state)}
-            </div>
+            ${makeMoreBtn(state)}
             <footer>Copyright © Davis Innovations | Data from NASA</footer>
         </main>
     `
@@ -153,7 +151,7 @@ const roverSpecs = (manifest) => {
 }
 
 // takes an array of image objects from Nasa and returns html
-const imgHandler = (photo_array, amount, photoSelection) => {
+const imgHandler = (photo_array, amount) => {
     const pics = photo_array
         .slice(-amount) 
         .map(pic => {
@@ -170,12 +168,7 @@ const imgHandler = (photo_array, amount, photoSelection) => {
             return html + img;
         },'');
 
-    return (`
-            <div class="pic-container">
-                ${photoLabel(photoSelection)}
-                ${pics}
-            </div>
-        `);
+    return pics;
 }
 
 // create rover selection buttons on the screen
@@ -216,11 +209,13 @@ const makeMoreBtn = (state) => {
     }
 
     return `
-        <button class="prev-btn" value="prev" onclick="getPrevPage(store)">Prev Page</button>
+        <div class="more-btn-container">
+            <button class="prev-btn" value="prev" onclick="getPrevPage(store)">Prev Page</button>
 
-        <span id="page-num">Photos ${photos.length-num_photos+1}-${photos.length} of ${formatNumber(tot_photos)} </span>
+            <span id="page-num">Photos ${photos.length-num_photos+1}-${photos.length} of ${formatNumber(tot_photos)} </span>
 
-        <button class="next-btn" value="next" onclick="getNextPage(store)">Next Page</button>
+            <button class="next-btn" value="next" onclick="getNextPage(store)">Next Page</button>
+        </div>
     `;
 }
 
@@ -326,27 +321,31 @@ function wrapStatus(status) {
 
 const photoLabel = (photoSelection) => {
     if (photoSelection === 'latest') {
-        return `
-            <div id="photo-box-label-container">
-                ${mkSpan('Latest Photos', 'photo-box-label')}
-            </div>
-        `;
+        return `<div>${mkSpan('Latest Photos', 'photo-box-label')}</div>`;
     } else {
-        return `
-            <div id="photo-box-label-container">
-                ${mkSpan('All Photos', 'photo-box-label')}
-            </div>
-        `;
+        return `<div>${mkSpan('All Photos', 'photo-box-label')}</div>`;
     }
 }
 
 // displays array of photos from a rover:
-const showPhotos = (photos, amount, photoSelection) => {
+const showPhotos = (state) => {
+    const photos = state.get('roverPhotos');
+    const amount = state.get('photoAmount');
+    const selection = state.get('photoSelection');
+    
     if (photos.length === 0) {
         return "";
     }
     else {
-        return imgHandler(photos, amount, photoSelection);
+        return `
+            <div class="pic-container">
+                <div id="photo-box-label-container">
+                    ${photoLabel(selection)}
+                    ${makeMoreBtn(state)}
+                </div>
+                ${imgHandler(photos, amount)}
+            </div>
+        `;
     }
 }
 
@@ -513,6 +512,7 @@ const roverCall = async (state, roverName) => {
             state = state.set('roverPhotos', results[1]);
             state = state.set('loading_msg', '');
             state = state.set('activeRover', roverName);
+            state = state.set('photoSelection', 'latest');
             updateStore(store, state);
         })
         .catch(err => console.log(err));    
