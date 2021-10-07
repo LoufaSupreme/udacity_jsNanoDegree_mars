@@ -82,19 +82,19 @@ app.get('/photos/days/:roverName/:date/:duration/', async (req, res) => {
 })
 
 // API call to get a certain amount of rover photos
-app.get('/photos/amount/:roverName/:start_date/:amount', async (req, res) => {
+app.get('/photos/amount/:roverName/:date/:amount', async (req, res) => {
     
     try {
         const roverName = req.params.roverName;
         const amount = req.params.amount;
-        const start_date = new Date(req.params.start_date);
+        const start_date = new Date(req.params.date.replace(/-/g,'/'));
         
         const photos = [];
 
         let date_counter = 0;
         while (photos.length < amount) {
 
-            // set target date to the start_date plus i, up to duration.
+            // set target date to the start_date minus date_counter.
             let target_date = new Date(start_date);
             target_date.setDate(start_date.getDate() - date_counter);
 

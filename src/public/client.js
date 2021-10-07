@@ -114,9 +114,9 @@ const roverSpecs = (manifest) => {
         return "";
     }
     
-    const launch_date = new Date(manifest.launch_date);
-    const land_date = new Date(manifest.landing_date);
-    const latest_date = new Date(manifest.latest_date);
+    const launch_date = new Date(manifest.launch_date.replace(/-/g, '/'));
+    const land_date = new Date(manifest.landing_date.replace(/-/g, '/'));
+    const latest_date = new Date(manifest.latest_date.replace(/-/g, '/'));
     const flight_time = (land_date.getTime() - launch_date.getTime()) / (1000*60*60*24);
     const mission_duration = (latest_date.getTime() - land_date.getTime()) / (1000*60*60*24);
 
@@ -131,7 +131,7 @@ const roverSpecs = (manifest) => {
                     ${mkSpan('Landed on Mars:', 'label')} ${land_date.toDateString()}
                 </li>
                 <li>
-                    ${mkSpan('Flight Time:','label')} ${flight_time} days
+                    ${mkSpan('Flight Time:','label')} ${flight_time.toFixed(1)} days
                 </li>
                 <li>
                     ${mkSpan('Latest Day on Mars:','label')} ${latest_date.toDateString()} (Sol ${formatNumber(manifest.latest_sol)})
@@ -152,8 +152,10 @@ const roverSpecs = (manifest) => {
 
 // takes an array of image objects from Nasa and returns html
 const imgHandler = (photo_array, amount) => {
+   
     const pics = photo_array
-        .slice(-amount) 
+        // .sort((a,b) => a.id > b.id ? -1 : 1)
+        .slice(-amount)  // take only the amount to be displayed
         .map(pic => {
             return (`
                 <div class="img-date-box">
@@ -349,8 +351,8 @@ const showPhotos = (state) => {
     }
 }
 
-// runs if "latest Photos", "50 Photos" or "3 Days of Photos" btns are clicked.
-// grabs photos from a different API path
+// runs if "latest Photos", or "all photos" btns are clicked.
+// grabs photos from relevant API path
 const filterPhotos = async (tag, state) => {
     const roverName = state.get('manifest').name;
     const latest_date = state.get('manifest').latest_date;
@@ -380,21 +382,32 @@ const filterPhotos = async (tag, state) => {
 const getNextPage = async (state) => {
     const roverName = state.get('manifest').name;
     const current_photos = state.get('roverPhotos');
+    // find the latest date of the photos currently on the screen:
     const latest_date = current_photos[current_photos.length-1].earth_date;
     const numPhotos = state.get('photoAmount');
+    // find the tot. # of photos taken on the latest date
+    // this is important so that we can fetch atleast this many, so we know we always have new unique photos (otherwise could just keep fetching duplicates):
+    const totPhotosThatDay = state.get('manifest').photo_info_list
+        .find(sol => sol.earth_date === latest_date).total_photos;
+    
+    // we need to fetch a min. of either 2x the amount of photos currently displayed, or the total num of photos taken that day + num photos currently displayed
+    // this will ensure that when we fetch a new batch of photos, even though we're starting at the first photo of the specified day, we'll fetch enough photos that atleast numPhotos of them will be unique (not duplicates):
+    const numPicsToFetch = Math.max(numPhotos*2, totPhotosThatDay+numPhotos);
 
-    // fetch twice the amount of photos, starting at the latest earth day of the photos currently shown
-    // fetching 2x the amount so that if we got 100% duplicates at first, we can remove them and still have 100% new photos left over
-    const photos = await getNumPhotos(roverName, latest_date, numPhotos*2);
+    // fetching way more than needed so if we got duplicates we can remove them and still have 100% new photos left over:
+    const photos = await getNumPhotos(roverName, latest_date, numPicsToFetch);
     
     // filter returned photos array to remove photos already displayed:
     console.log('Filtering out duplicate images.');
-    const filteredPhotos = photos.filter(pic => !current_photos.includes(pic));
+    // have to map to a new array of IDs, b/c JS can't check equality of 2 objects:
+    const filteredPhotos = photos.filter(pic => {
+        const current_IDs = current_photos.map(p => p.id);
+        return !current_IDs.includes(pic.id);
+    });
 
     // pair it down to just the first results up to the specified number of photos to display:
     console.log('Pairing down to specified display number.');
-    const finalPhotos = filteredPhotos.slice(0, -numPhotos);
-
+    const finalPhotos = filteredPhotos.slice(0, numPhotos);
     finalPhotos.forEach(pic => current_photos.push(pic));
 
     state = state.set('roverPhotos', current_photos);
@@ -441,13 +454,14 @@ const getManifest = async (roverName) => {
         .then(res => {
             const info = res.data.photo_manifest;
             const roverManifest = {
-                name: info.name,
+                name: info.name,                    // rover name
                 launch_date: info.launch_date,
                 landing_date: info.landing_date,
-                latest_date: info.max_date,
-                latest_sol: info.max_sol,
-                status: info.status,
-                total_photos: info.total_photos
+                latest_date: info.max_date,         // latest earth date
+                latest_sol: info.max_sol,           // latest mars day (sol)
+                status: info.status,                // mission status
+                total_photos: info.total_photos,    // tot # photos taken by rover
+                photo_info_list: info.photos        // array of each sol with info on photos taken that sol
             }
             return roverManifest;
         })
