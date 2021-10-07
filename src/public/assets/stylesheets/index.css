@@ -106,9 +106,13 @@ ul {
   font-weight: bold;
 }
 
+/* latest photos and all photos btns */
 .filter-btn-container {
   display: flex;
   justify-content: center;
+}
+
+.filter-btn {
   cursor: pointer;
 }
 
@@ -240,6 +244,9 @@ ul {
   display: flex;
   justify-content: center;
   margin-bottom: 1rem;
+}
+
+.nav-btn {
   cursor: pointer;
 }
 

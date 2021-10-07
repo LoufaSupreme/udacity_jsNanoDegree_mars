@@ -210,11 +210,11 @@ const makeMoreBtn = (state) => {
 
     return `
         <div class="more-btn-container">
-            <button class="prev-btn" value="prev" onclick="getPrevPage(store)">Prev Page</button>
+            <button class="nav-btn prev-btn" value="prev" onclick="getPrevPage(store)">Prev Page</button>
 
             <span id="page-num">Photos ${photos.length-num_photos+1}-${photos.length} of ${formatNumber(tot_photos)} </span>
 
-            <button class="next-btn" value="next" onclick="getNextPage(store)">Next Page</button>
+            <button class="nav-btn next-btn" value="next" onclick="getNextPage(store)">Next Page</button>
         </div>
     `;
 }
