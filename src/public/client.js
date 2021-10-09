@@ -61,7 +61,7 @@ const App = (state) => {
     }
     else if (view === 'apod') {
         return `
-        <header></header>
+        <header>${makeBackBtn()}</header>
         <main>
             ${Header(state.get('header'))}
             <section id="">
@@ -73,7 +73,7 @@ const App = (state) => {
     }
     else if (view === 'rovers') {
         return `
-            <header></header>
+            <header>${makeBackBtn()}</header>
             ${makeModal()}
             <main>
             ${Header(state.get('header'))}
@@ -97,7 +97,7 @@ const App = (state) => {
     }
     else if (view === 'earth') {
         return `
-            <header></header>
+            <header>${makeBackBtn()}</header>
             <main>
                 ${Header(state.get('header'))}
                 <section id="">
@@ -119,6 +119,7 @@ const Header = (title) => {
     return `<h1>Mars Rover API</h1>`;
 }
 
+// create buttons for each view of the single-page application
 const makeIntroBtns = () => {
     return `
         <div class="intro-btn" id="apod-btn" onclick="changeView(this, store)">
@@ -139,6 +140,7 @@ const makeIntroBtns = () => {
     `;
 }
 
+// change the "view" and title according to which intro btn was clicked
 const changeView = (elem, state) => {
     if (elem.id === 'apod-btn') {
         state = state.set('header', 'Astronomy Photo of the Day');
@@ -158,6 +160,17 @@ const changeView = (elem, state) => {
     else {
         console.log('Error. No ID on element.');
     }
+}
+
+// creates a back button that returns user back to landing page ('intro'):
+const makeBackBtn = () => {
+    return `<button id="back-btn" onclick="backToIntro(store)">Back</button>`;
+}
+
+// resets view back to 'intro'
+const backToIntro = (state) => {
+    state = state.set('view', 'intro');
+    updateStore(store, state);
 }
 
 // Example of a pure function that renders infomation requested from the backend
@@ -190,8 +203,9 @@ const earthPhoto = (earthImg) => {
 
     if (!earthImg) {
         getEarthPhoto(store);
+        return '';
     } else {
-        return `<img src="${earthImg}" height="350px" width="100%" />`;
+        return `<img src="${earthImg}" height="auto" width="100%" />`;
     }
 }
 
@@ -535,12 +549,12 @@ const getImageOfTheDay = (state) => {
 }
 
 // API call to get Earth image:
-const getEarthPhoto = (state) => {
+const getEarthPhoto = async (state) => {
 
     console.log('Fetching Earth image.');
-    const earth_img = state.get('earthImg');
+    // const earth_img = state.get('earthImg');
 
-    fetch('http://localhost:3000/earth')
+    const earth_img = await fetch('http://localhost:3000/earth')
         .then(res => res.text())
         .then(url => {
             state = state.set('earthImg', url);

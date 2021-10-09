@@ -26,17 +26,37 @@ body {
   background-color: black;
 }
 
+header {
+  max-height: 5vh;
+  min-height: 5vh;
+  display: flex;
+}
+
+#back-btn {
+  cursor: pointer;
+  background-color: transparent;
+  color: rgb(150,150,150);
+  margin: 0.5rem 0rem 0rem 0.5rem;
+  border: 1px solid rgb(100,100,100);
+  border-radius: 2px;;
+  padding: 0.1rem 0.3rem 0.1rem 0.3rem;
+  font-size: 1.3rem;
+}
+
+#back-btn:hover {
+  background-color:rgba(173, 58, 58, 0.6);
+  color: white;
+  border: 1px solid white;
+}
+
 main {
   display: flex;
-  min-height: 97vh;
+  flex-direction: column;
+  min-height: 95vh;
+  max-height: 95vh;
   padding: 20px;
   padding-bottom: 0px;
   justify-items: center;
-  flex-direction: column;
-}
-
-header {
-  /* header styles */
 }
 
 h1 {
