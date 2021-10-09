@@ -1,6 +1,8 @@
 // global state of app:
 let store = Immutable.Map({
     header: "PROJECT RED ROVER",
+    view: 'intro',
+    loading_msg: '',
     apod: '',
     rovers: ['Curiosity', 'Opportunity', 'Spirit'],
     activeRover: 'None',
@@ -8,8 +10,7 @@ let store = Immutable.Map({
     photoSelection: 'latest',
     photoAmount: 25,
     manifest: '',
-    loading_msg: '',
-    view: 'intro',
+    earthImg: '',
 });
 
 // grab main html element to add content to:
@@ -37,6 +38,7 @@ const App = (state) => {
     const loading_msg = state.get('loading_msg');
     const activeRover = state.get('activeRover');
     const view = state.get('view');
+    const earthImg = state.get('earthImg');
 
     // this is where the main content of the page is generated:
     
@@ -67,7 +69,6 @@ const App = (state) => {
             </section>
             <footer>Copyright © Davis Innovations | Data from NASA</footer>
         </main>
-
         `;
     }
     else if (view === 'rovers') {
@@ -92,7 +93,19 @@ const App = (state) => {
                 ${makeMoreBtn(state)}
                 <footer>Copyright © Davis Innovations | Data from NASA</footer>
             </main>
-        `
+        `;
+    }
+    else if (view === 'earth') {
+        return `
+            <header></header>
+            <main>
+                ${Header(state.get('header'))}
+                <section id="">
+                    ${earthPhoto(earthImg)}
+                </section>
+                <footer>Copyright © Davis Innovations | Data from NASA</footer>
+            </main>
+        `;
     }
 }
 
@@ -170,6 +183,15 @@ const ImageOfTheDay = (apod) => {
             <img src="${apod.image.url}" height="350px" width="100%" />
             <p id="apod-text">${apod.image.explanation}</p>
         `)
+    }
+}
+
+const earthPhoto = (earthImg) => {
+
+    if (!earthImg) {
+        getEarthPhoto(store);
+    } else {
+        return `<img src="${earthImg}" height="350px" width="100%" />`;
     }
 }
 
@@ -498,7 +520,9 @@ const getPrevPage = (state) => {
 
 // Example API call
 const getImageOfTheDay = (state) => {
-    let apod = state.get('apod');
+
+    console.log('Fetching APOD');
+    const apod = state.get('apod');
 
     fetch(`http://localhost:3000/apod`)
         .then(res => res.json())
@@ -508,6 +532,23 @@ const getImageOfTheDay = (state) => {
         });
 
     return apod;
+}
+
+// API call to get Earth image:
+const getEarthPhoto = (state) => {
+
+    console.log('Fetching Earth image.');
+    const earth_img = state.get('earthImg');
+
+    fetch('http://localhost:3000/earth')
+        .then(res => res.text())
+        .then(url => {
+            state = state.set('earthImg', url);
+            updateStore(store, state);
+        })
+        .catch(err => console.log(err));
+    
+    return earth_img;
 }
 
 // API call to get rover manifest info

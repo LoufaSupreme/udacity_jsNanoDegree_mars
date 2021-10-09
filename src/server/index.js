@@ -143,4 +143,36 @@ app.get('/manifests/:roverName', async (req, res) => {
     }
 })
 
+// NASA EPIC API call to get an image URL of photo of Earth:
+app.get('/earth', async (req, res) => {
+    try {
+        // get array of natural earth images from the latest date:
+        const nat_imgs = await fetch(`https://api.nasa.gov/EPIC/api/natural?api_key=${process.env.API_KEY}`)
+            .then(res => res.json())
+            .then(res => {
+                // console.log(res);
+                return res;
+            });
+
+        // pick one of the returned imgs at random:
+        const random_img = nat_imgs[Math.floor(Math.random() * nat_imgs.length) + 1];
+        // take the date of the image out and make a JS date from it:
+        const d = new Date(random_img.date);
+        // convert the date to the correct format YYYY-MM-DD:
+        const date = `${d.getFullYear()}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getDate().toString().padStart(2,'0')}`;
+
+
+        const url = `https://api.nasa.gov/EPIC/archive/natural/${date}/png/${random_img.image}.png?api_key=${process.env.API_KEY}`;
+
+        // const img_blob = await fetch(`https://api.nasa.gov/EPIC/archive/natural/${date}/png/${random_img.image}.png?api_key=${process.env.API_KEY}`)
+        //     .then(res => res);
+            // .then(blob => {
+            //     return blob;
+            // });
+        res.send(url);
+    } catch (err) {
+        console.log('error:', err);
+    }
+})
+
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
