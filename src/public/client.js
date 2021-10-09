@@ -1,6 +1,6 @@
 // global state of app:
 let store = Immutable.Map({
-    header: { title: "PROJECT RED ROVER" },
+    header: "PROJECT RED ROVER",
     apod: '',
     rovers: ['Curiosity', 'Opportunity', 'Spirit'],
     activeRover: 'None',
@@ -9,6 +9,7 @@ let store = Immutable.Map({
     photoAmount: 25,
     manifest: '',
     loading_msg: '',
+    view: 'intro',
 });
 
 // grab main html element to add content to:
@@ -32,36 +33,67 @@ const App = (state) => {
     // grab objects from state (Immutable.JS):
     const rovers = state.get('rovers');
     const apod = state.get('apod');
-    const roverPhotos = state.get('roverPhotos');
     const manifest = state.get('manifest');
     const loading_msg = state.get('loading_msg');
     const activeRover = state.get('activeRover');
-    const photoSelection = state.get('photoSelection');
-    const photoAmount = state.get('photoAmount');
+    const view = state.get('view');
 
     // this is where the main content of the page is generated:
-    return `
+    
+    if (view === 'intro') {
+        return `
+            <header></header>
+            <main>
+                <section id="intro-container">
+                    <div id="intro-title">Project Red Rover</div>
+                    <div id="intro-blurb">
+                        Explore Space with the NASA API
+                    </div>
+                    <div class="intro-btn-container">
+                        ${makeIntroBtns()}
+                    </div>
+                </section>
+                <footer>Copyright © Davis Innovations | Data from NASA</footer>
+            </main>
+        `;
+    }
+    else if (view === 'apod') {
+        return `
         <header></header>
-        ${makeModal()}
         <main>
-            ${Header(state.get('header').title)}
-            <section class="btn-container">
-                ${makeButtons(rovers)}
+            ${Header(state.get('header'))}
+            <section id="">
+                ${ImageOfTheDay(apod)}
             </section>
-            <section class="specs-container">
-                ${writeMessage(loading_msg)}
-                ${roverSpecs(manifest)}
-            </section>
-            <div class="filter-btn-container">
-                ${makePhotoFilterBtns(activeRover)}
-            </div>
-            <section>
-                ${showPhotos(state)}
-            </section>
-            ${makeMoreBtn(state)}
             <footer>Copyright © Davis Innovations | Data from NASA</footer>
         </main>
-    `
+
+        `;
+    }
+    else if (view === 'rovers') {
+        return `
+            <header></header>
+            ${makeModal()}
+            <main>
+            ${Header(state.get('header'))}
+                <section class="btn-container">
+                    ${makeButtons(rovers)}
+                </section>
+                <section class="specs-container">
+                    ${writeMessage(loading_msg)}
+                    ${roverSpecs(manifest)}
+                </section>
+                <div class="filter-btn-container">
+                    ${makePhotoFilterBtns(activeRover)}
+                </div>
+                <section>
+                    ${showPhotos(state)}
+                </section>
+                ${makeMoreBtn(state)}
+                <footer>Copyright © Davis Innovations | Data from NASA</footer>
+            </main>
+        `
+    }
 }
 
 
@@ -69,15 +101,50 @@ const App = (state) => {
 
 // Pure function that renders conditional information -- THIS IS JUST AN EXAMPLE, you can delete it.
 const Header = (title) => {
-    if (title) {
-        return `
-            <h1>${title}</h1>
-        `
-    }
+    if (title) return `<h1>${title}</h1>`;
+    
+    return `<h1>Mars Rover API</h1>`;
+}
 
+const makeIntroBtns = () => {
     return `
-        <h1>Mars Rover API</h1>
-    `
+        <div class="intro-btn" id="apod-btn" onclick="changeView(this, store)">
+            <div class="intro-btn-text">
+                Astronomy Photo of the Day
+            </div>
+        </div>
+        <div class="intro-btn" id="rovers-btn" onclick="changeView(this, store)">
+            <div class="intro-btn-text">
+                Mars Rovers
+            </div>
+        </div>
+        <div class="intro-btn" id="earth-btn" onclick="changeView(this, store)">
+            <div class="intro-btn-text">
+                Earth
+            </div>
+        </div>
+    `;
+}
+
+const changeView = (elem, state) => {
+    if (elem.id === 'apod-btn') {
+        state = state.set('header', 'Astronomy Photo of the Day');
+        state = state.set('view', 'apod');
+        updateStore(store, state);
+    }
+    else if (elem.id === 'rovers-btn') {
+        state = state.set('header', 'Mars Rovers');
+        state = state.set('view', 'rovers');
+        updateStore(store, state);
+    }
+    else if (elem.id === 'earth-btn') {
+        state = state.set('header', 'Earth');
+        state = state.set('view', 'earth');
+        updateStore(store, state);
+    }
+    else {
+        console.log('Error. No ID on element.');
+    }
 }
 
 // Example of a pure function that renders infomation requested from the backend
@@ -86,9 +153,7 @@ const ImageOfTheDay = (apod) => {
     // If image does not already exist, or it is not from today -- request it again
     const today = new Date();
     const photodate = new Date(apod.date);
-    console.log(photodate.getDate(), today.getDate());
 
-    console.log(photodate.getDate() === today.getDate());
     if (!apod || apod.date === today.getDate() ) {
         getImageOfTheDay(store);
     }
@@ -103,7 +168,7 @@ const ImageOfTheDay = (apod) => {
     } else {
         return (`
             <img src="${apod.image.url}" height="350px" width="100%" />
-            <p>${apod.image.explanation}</p>
+            <p id="apod-text">${apod.image.explanation}</p>
         `)
     }
 }
@@ -367,6 +432,7 @@ const filterPhotos = async (tag, state) => {
     } 
     // show all photos (up to numPhotosToDisplay):
     else if (tag === 'all') {
+        setMessage(state, roverName);
         const photos = await getNumPhotos(roverName, latest_date, numPhotosToDisplay);
         state = state.set('roverPhotos', photos);
         state = state.set('photoSelection', tag);
