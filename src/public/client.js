@@ -182,6 +182,7 @@ const ImageOfTheDay = (apod) => {
 
     if (!apod || apod.date === today.getDate() ) {
         getImageOfTheDay(store);
+        return '';
     }
 
     // check if the photo of the day is actually type video!
@@ -353,22 +354,26 @@ const makeModal = () => {
 const addListeners = (root, state) => {
     
     // rover buttons:
-    const buttons = root.querySelectorAll(".btn");
-    buttons.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            setMessage(state, e.target.dataset.name);
-            roverCall(state, e.target.dataset.name);
+    if (state.get('view') === 'rovers') {
+        const buttons = root.querySelectorAll(".btn");
+        buttons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                setMessage(state, e.target.dataset.name);
+                roverCall(state, e.target.dataset.name);
+            });
         });
-    });
+    }
 
     // full sized image modal
     // set to hidden if clicked on by removing class "open"
-    const modal = root.querySelector('.modal');
-    modal.addEventListener('click', (e) => {
-        // if (e.target.classList.contains('modal')) {
-            modal.classList.remove('open');
-        // }
-    });
+    if (state.get('view') === 'rovers') {
+        const modal = root.querySelector('.modal');
+        modal.addEventListener('click', (e) => {
+            // if (e.target.classList.contains('modal')) {
+                modal.classList.remove('open');
+            // }
+        });
+    }
 
     // rover photos:
     const photos = root.querySelectorAll(".photo");
