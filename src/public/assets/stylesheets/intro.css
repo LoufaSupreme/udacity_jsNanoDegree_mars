@@ -22,6 +22,8 @@
     margin: 1.5rem 0 3rem 0;
     font-size: 1.5rem;
     text-align: center;
+    animation-name: fade;
+    animation-duration: 3s;
   }
 
   .intro-btn-container {
@@ -44,9 +46,13 @@
     cursor: pointer;
     overflow: hidden;
     transition: 0.2s ease-in-out;
+    animation-name: fade;
+    animation-duration: 2s;
+    animation-fill-mode: forwards; /* req'd for animation to work correctly */ 
+    opacity: 0;
   }
 
-  .intro-btn:hover {
+  .intro-btn:hover, .intro-btn:active {
     box-shadow: 2px 2px 15px rgba(255,255,255,0.4);
   }
 
@@ -63,7 +69,7 @@
     transition: 0.2s ease-in-out;
   }
 
-  .intro-btn-text:hover {
+  .intro-btn-text:hover, .intro-btn-text:active {
       opacity: 1;
   }
 
@@ -72,17 +78,29 @@
     background-image: url('../images/galaxy.jpg');
     /* background-size: cover; */
     background-size: 100% 100%;
-
+    animation-delay: 1s;
   }
 
   #rovers-btn {
     background-image: url('../images/rover.jpg');
     /* background-size: cover; */
     background-size: 100% 100%;
-
+    animation-delay: 1.5s;
   }
 
   #earth-btn {
       background-image: url('../images/earth.jpg');
       background-size: 100% 100%;
+      animation-delay: 2s;
+  }
+
+  @keyframes fade {
+    0% {
+        opacity: 0;
+        transform: translateY(70px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0px);
+      }
   }
