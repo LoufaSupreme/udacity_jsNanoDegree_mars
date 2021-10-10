@@ -581,7 +581,7 @@ const getEarthPhoto = async (state) => {
     console.log('Fetching Earth image.');
     // const earth_img = state.get('earthImg');
 
-    const earth_img = await fetch('http://localhost:3000/earth')
+    const earth_img = await fetch('/earth')
         .then(res => res.json())
         .then(img => {
             state = state.set('earthImg', img);
