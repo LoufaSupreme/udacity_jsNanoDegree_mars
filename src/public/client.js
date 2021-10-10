@@ -112,7 +112,7 @@ const App = (state) => {
 
 // ------------------------------------------------------  COMPONENTS
 
-// Pure function that renders conditional information -- THIS IS JUST AN EXAMPLE, you can delete it.
+// Pure function that renders conditional information
 const Header = (title) => {
     if (title) return `<h1>${title}</h1>`;
     
