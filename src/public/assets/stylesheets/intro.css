@@ -28,7 +28,7 @@
 
   .intro-btn-container {
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     /* justify-content: space-between; */
   }
 
@@ -104,3 +104,20 @@
         transform: translateY(0px);
       }
   }
+
+  /* -------------------  LARGE SCREENS  -------------- */
+
+@media (min-width: 1054px) {
+
+#intro-title {
+    font-size: 3.5rem;
+}
+
+#intro-blurb {
+    font-size: 2.5rem;
+}
+
+.intro-btn {
+    min-height: 300px;
+    min-width: 300px;
+}

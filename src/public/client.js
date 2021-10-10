@@ -187,9 +187,8 @@ const ImageOfTheDay = (apod) => {
 
     // If image does not already exist, or it is not from today -- request it again
     const today = new Date();
-    const photodate = new Date(apod.date);
 
-    if (!apod || apod.date === today.getDate() ) {
+    if (!apod || apod.date != today.getDate() ) {
         getImageOfTheDay(store);
         return '';
     }
@@ -199,7 +198,7 @@ const ImageOfTheDay = (apod) => {
         return (`
             <iframe title="vimeo-player" src="${apod.image.url}" width="100%" height="350" frameborder="0" allowfullscreen></iframe>
             
-            <p id="apod-alt-link">See today's featured video <a id="apod-video"href="${apod.image.url}">here!</a></p>
+            <p id="apod-alt-link">Can't see the video? Go <a id="apod-video"href="${apod.image.url}">here!</a> to check it out!</p>
             <h2 id="apod-title">${apod.image.title}</h2>
             <p id="apod-text">${apod.image.explanation}</p>
         `)
