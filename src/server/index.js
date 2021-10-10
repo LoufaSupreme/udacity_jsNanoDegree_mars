@@ -147,29 +147,39 @@ app.get('/manifests/:roverName', async (req, res) => {
 app.get('/earth', async (req, res) => {
     try {
         // get array of natural earth images from the latest date:
-        const nat_imgs = await fetch(`https://api.nasa.gov/EPIC/api/natural?api_key=${process.env.API_KEY}`)
+        // const nat_imgs = await fetch(`https://api.nasa.gov/EPIC/api/natural?api_key=${process.env.API_KEY}`)
+        //     .then(res => res.json());
+        
+        // get array of enhanced earth images from the latest date:
+        const enhanced_imgs = await fetch(`https://api.nasa.gov/EPIC/api/enhanced?api_key=${process.env.API_KEY}`)
             .then(res => res.json())
-            .then(res => {
-                // console.log(res);
-                return res;
-            });
+            .catch(err => console.log(err));
+
+        const images = [];
+        // nat_imgs.forEach(img => images.push(img));
+        enhanced_imgs.forEach(img => images.push(img));
 
         // pick one of the returned imgs at random:
-        const random_img = nat_imgs[Math.floor(Math.random() * nat_imgs.length) + 1];
+        const random_img = images[Math.floor(Math.random() * images.length) + 1];
+
         // take the date of the image out and make a JS date from it:
         const d = new Date(random_img.date);
         // convert the date to the correct format YYYY-MM-DD:
         const date = `${d.getFullYear()}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getDate().toString().padStart(2,'0')}`;
 
+        // construct API URL from the above image/date.  The API directly returns an image, so this URL can be used directly as an img src.
+        const url = `https://api.nasa.gov/EPIC/archive/enhanced/${date}/png/${random_img.image}.png?api_key=${process.env.API_KEY}`;
 
-        const url = `https://api.nasa.gov/EPIC/archive/natural/${date}/png/${random_img.image}.png?api_key=${process.env.API_KEY}`;
+        const img_obj = {
+            url: url,
+            caption: random_img.caption,
+            date: random_img.date,
+            lat: random_img.centroid_coordinates.lat,
+            lon: random_img.centroid_coordinates.lon,
+        }
 
-        // const img_blob = await fetch(`https://api.nasa.gov/EPIC/archive/natural/${date}/png/${random_img.image}.png?api_key=${process.env.API_KEY}`)
-        //     .then(res => res);
-            // .then(blob => {
-            //     return blob;
-            // });
-        res.send(url);
+        res.send(img_obj);
+
     } catch (err) {
         console.log('error:', err);
     }

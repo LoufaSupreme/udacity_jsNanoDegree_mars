@@ -10,7 +10,7 @@ let store = Immutable.Map({
     photoSelection: 'latest',
     photoAmount: 25,
     manifest: '',
-    earthImg: '',
+    earthImg: {},
 });
 
 // grab main html element to add content to:
@@ -100,7 +100,7 @@ const App = (state) => {
             <header>${makeBackBtn()}</header>
             <main>
                 ${Header(state.get('header'))}
-                <section id="">
+                <section id="content">
                     ${earthPhoto(earthImg)}
                 </section>
                 <footer>Copyright © Davis Innovations | Data from NASA</footer>
@@ -153,6 +153,7 @@ const changeView = (elem, state) => {
         updateStore(store, state);
     }
     else if (elem.id === 'earth-btn') {
+        // history.pushState(null, '', 'test');
         state = state.set('header', 'Earth');
         state = state.set('view', 'earth');
         updateStore(store, state);
@@ -202,11 +203,24 @@ const ImageOfTheDay = (apod) => {
 
 const earthPhoto = (earthImg) => {
 
-    if (!earthImg) {
+    if (Object.keys(earthImg).length === 0) {
         getEarthPhoto(store);
         return '';
     } else {
-        return `<img src="${earthImg}" height="auto" width="100%" />`;
+        return `
+        <img src="${earthImg.url}" height="auto" width="100%" />
+        <div class="earth-info-container">
+            <div id="earth-caption">${earthImg.caption}.</div>
+            <div>${mkSpan('Date:', 'earth-info')} ${earthImg.date}</div>
+            <div class="earth-coords">
+                ${mkSpan('Centroid Coordinates:', 'earth-info')}
+                <ul>
+                    <li>${mkSpan('Latitude:', 'earth-info-sm')} ${earthImg.lat}</li>
+                    <li>${mkSpan('Longitude:', 'earth-info-sm')} ${earthImg.lon}</li>
+                </ul> 
+            </div>
+        </div>
+        `;
     }
 }
 
@@ -399,7 +413,6 @@ const addListeners = (root, state) => {
             `;
         })
     })
-
 }
 
 // ------------------------------------------------------  HELPER FUNCTIONS
@@ -560,9 +573,9 @@ const getEarthPhoto = async (state) => {
     // const earth_img = state.get('earthImg');
 
     const earth_img = await fetch('http://localhost:3000/earth')
-        .then(res => res.text())
-        .then(url => {
-            state = state.set('earthImg', url);
+        .then(res => res.json())
+        .then(img => {
+            state = state.set('earthImg', img);
             updateStore(store, state);
         })
         .catch(err => console.log(err));
