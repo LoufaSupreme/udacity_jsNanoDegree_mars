@@ -565,7 +565,7 @@ const getImageOfTheDay = (state) => {
     console.log('Fetching APOD');
     const apod = state.get('apod');
 
-    fetch(`http://localhost:3000/apod`)
+    fetch(`/apod`)
         .then(res => res.json())
         .then(apod => {
             state = state.set('apod', apod);
@@ -597,7 +597,7 @@ const getManifest = async (roverName) => {
 
     console.log(`Fetching Manifest for Rover ${roverName}`);
 
-    const manifest = await fetch(`http://localhost:3000/manifests/${roverName}`)
+    const manifest = await fetch(`/manifests/${roverName}`)
         .then(res => res.json())
         .then(res => {
             const info = res.data.photo_manifest;
@@ -624,7 +624,7 @@ const getLatestPhotos = async (roverName) => {
 
     console.log(`Fetching latest photos for Rover ${roverName}`);
     
-    const roverPhotos = await fetch(`http://localhost:3000/latest_photos/${roverName}`)
+    const roverPhotos = await fetch(`/latest_photos/${roverName}`)
         .then(res => res.json())
         .then(res => res.data.latest_photos)
         .catch(err => console.log(err));
@@ -638,7 +638,7 @@ const getDaysOfPhotos = async (roverName, date, num_days) => {
     
     console.log(`Fetching ${num_days}days worth of images for Rover ${roverName}`);
 
-    const photos = await fetch(`http://localhost:3000/photos/days/${roverName}/${date}/${num_days}`)
+    const photos = await fetch(`/photos/days/${roverName}/${date}/${num_days}`)
         .then(res => res.json())
         .then(data => data)
         .catch(err => console.log(err));
@@ -652,7 +652,7 @@ const getNumPhotos = async (roverName, date, amount) => {
 
     console.log(`Fetching ${amount} images from Rover ${roverName}`);
     
-    const photos = await fetch(`http://localhost:3000/photos/amount/${roverName}/${date}/${amount}`)
+    const photos = await fetch(`/photos/amount/${roverName}/${date}/${amount}`)
         .then(res => res.json())
         .then(data => data)
         .catch(err => console.log(err));
