@@ -2,6 +2,26 @@
 
 /* -------------------  MOBILE  --------------------- */
 
+#apod-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
 #apod-text {
     margin: 2rem 0 3rem 0;
+    max-width: 90%;
+}
+
+#apod-video {
+    color: rgb(106, 106, 236);
+}
+
+#apod-title {
+    margin-top: 1rem;
+}
+
+#apod-alt-link {
+
 }

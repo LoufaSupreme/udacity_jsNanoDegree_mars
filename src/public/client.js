@@ -64,7 +64,7 @@ const App = (state) => {
         <header>${makeBackBtn()}</header>
         <main>
             ${Header(state.get('header'))}
-            <section id="">
+            <section id="apod-container">
                 ${ImageOfTheDay(apod)}
             </section>
             <footer>Copyright © Davis Innovations | Data from NASA</footer>
@@ -122,17 +122,17 @@ const Header = (title) => {
 // create buttons for each view of the single-page application
 const makeIntroBtns = () => {
     return `
-        <div class="intro-btn" id="apod-btn" onclick="changeView(this, store)">
+        <div class="intro-btn" id="apod-btn" data-view="apod" onclick="changeView(this.dataset.view, store)">
             <div class="intro-btn-text">
                 Astronomy Photo of the Day
             </div>
         </div>
-        <div class="intro-btn" id="rovers-btn" onclick="changeView(this, store)">
+        <div class="intro-btn" id="rovers-btn" data-view="rovers" onclick="changeView(this.dataset.view, store)">
             <div class="intro-btn-text">
                 Mars Rovers
             </div>
         </div>
-        <div class="intro-btn" id="earth-btn" onclick="changeView(this, store)">
+        <div class="intro-btn" id="earth-btn" data-view="earth" onclick="changeView(this.dataset.view, store)">
             <div class="intro-btn-text">
                 Earth
             </div>
@@ -141,25 +141,32 @@ const makeIntroBtns = () => {
 }
 
 // change the "view" and title according to which intro btn was clicked
-const changeView = (elem, state) => {
-    if (elem.id === 'apod-btn') {
+const changeView = (view, state) => {
+    if (view === 'apod') {
+        history.pushState({view: view}, '', 'apod');  //modifies url bar
         state = state.set('header', 'Astronomy Photo of the Day');
         state = state.set('view', 'apod');
         updateStore(store, state);
     }
-    else if (elem.id === 'rovers-btn') {
+    else if (view === 'rovers') {
+        history.pushState({view: view}, '', 'Mars_Rovers'); //modifies url bar
         state = state.set('header', 'Mars Rovers');
         state = state.set('view', 'rovers');
         updateStore(store, state);
     }
-    else if (elem.id === 'earth-btn') {
-        // history.pushState(null, '', 'test');
+    else if (view === 'earth') {
+        history.pushState({view: view}, '', 'Earth'); //modifies url bar
         state = state.set('header', 'Earth');
         state = state.set('view', 'earth');
         updateStore(store, state);
     }
+    else if (view === 'intro') {
+        history.pushState({view: view}, '', ''); //modifies url bar
+        state = state.set('view', 'intro');
+        updateStore(store, state);
+    }
     else {
-        console.log('Error. No ID on element.');
+        console.log('Error. No view specified on element.');
     }
 }
 
@@ -170,6 +177,7 @@ const makeBackBtn = () => {
 
 // resets view back to 'intro'
 const backToIntro = (state) => {
+    history.replaceState({view: 'intro'}, '', '/');
     state = state.set('view', 'intro');
     updateStore(store, state);
 }
@@ -187,11 +195,13 @@ const ImageOfTheDay = (apod) => {
     }
 
     // check if the photo of the day is actually type video!
-    if (apod.media_type === "video") {
+    if (apod.image.media_type === "video") {
         return (`
-            <p>See today's featured video <a href="${apod.url}">here</a></p>
-            <p>${apod.title}</p>
-            <p>${apod.explanation}</p>
+            <iframe title="vimeo-player" src="${apod.image.url}" width="100%" height="350" frameborder="0" allowfullscreen></iframe>
+            
+            <p id="apod-alt-link">See today's featured video <a id="apod-video"href="${apod.image.url}">here!</a></p>
+            <h2 id="apod-title">${apod.image.title}</h2>
+            <p id="apod-text">${apod.image.explanation}</p>
         `)
     } else {
         return (`
@@ -676,5 +686,12 @@ const roverCall = async (state, roverName) => {
 
 // listening for load event because page should load before any JS is called
 window.addEventListener('load', () => {
+    history.pushState({view: 'intro'}, '', '');
     render(root, store);
-})
+});
+
+// popstate executes when browser back btn is pressed. This will return user to intro landing page.  Works in conjunction with history.pushState();
+window.addEventListener('popstate', (e) => {
+    const view = e.state.view;
+    changeView(view, store);
+});
