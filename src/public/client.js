@@ -198,7 +198,7 @@ const ImageOfTheDay = (apod) => {
         return (`
             <iframe title="vimeo-player" src="${apod.image.url}" width="100%" height="350" frameborder="0" allowfullscreen></iframe>
             
-            <p id="apod-alt-link">Can't see the video? Go <a id="apod-video"href="${apod.image.url}">here!</a> to check it out!</p>
+            <p id="apod-alt-link">Can't see the video? Go <a id="apod-video"href="${apod.image.url}">here</a> to check it out!</p>
             <h2 id="apod-title">${apod.image.title}</h2>
             <p id="apod-text">${apod.image.explanation}</p>
         `)
@@ -565,7 +565,7 @@ const getImageOfTheDay = (state) => {
     console.log('Fetching APOD');
     const apod = state.get('apod');
 
-    fetch(`/apod`)
+    fetch(`/api/apod`)
         .then(res => res.json())
         .then(apod => {
             state = state.set('apod', apod);
@@ -581,7 +581,7 @@ const getEarthPhoto = async (state) => {
     console.log('Fetching Earth image.');
     // const earth_img = state.get('earthImg');
 
-    const earth_img = await fetch('/earth')
+    const earth_img = await fetch('/api/earth')
         .then(res => res.json())
         .then(img => {
             state = state.set('earthImg', img);
@@ -597,7 +597,7 @@ const getManifest = async (roverName) => {
 
     console.log(`Fetching Manifest for Rover ${roverName}`);
 
-    const manifest = await fetch(`/manifests/${roverName}`)
+    const manifest = await fetch(`/api/manifests/${roverName}`)
         .then(res => res.json())
         .then(res => {
             const info = res.data.photo_manifest;
@@ -624,7 +624,7 @@ const getLatestPhotos = async (roverName) => {
 
     console.log(`Fetching latest photos for Rover ${roverName}`);
     
-    const roverPhotos = await fetch(`/latest_photos/${roverName}`)
+    const roverPhotos = await fetch(`/api/latest_photos/${roverName}`)
         .then(res => res.json())
         .then(res => res.data.latest_photos)
         .catch(err => console.log(err));
@@ -638,7 +638,7 @@ const getDaysOfPhotos = async (roverName, date, num_days) => {
     
     console.log(`Fetching ${num_days}days worth of images for Rover ${roverName}`);
 
-    const photos = await fetch(`/photos/days/${roverName}/${date}/${num_days}`)
+    const photos = await fetch(`/api/photos/days/${roverName}/${date}/${num_days}`)
         .then(res => res.json())
         .then(data => data)
         .catch(err => console.log(err));
@@ -652,7 +652,7 @@ const getNumPhotos = async (roverName, date, amount) => {
 
     console.log(`Fetching ${amount} images from Rover ${roverName}`);
     
-    const photos = await fetch(`/photos/amount/${roverName}/${date}/${amount}`)
+    const photos = await fetch(`/api/photos/amount/${roverName}/${date}/${amount}`)
         .then(res => res.json())
         .then(data => data)
         .catch(err => console.log(err));

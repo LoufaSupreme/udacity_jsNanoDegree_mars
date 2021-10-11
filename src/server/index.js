@@ -13,7 +13,7 @@ app.use(bodyParser.json())
 app.use('/', express.static(path.join(__dirname, '../public')))
 
 // Astronomy Photo of the Day API endpoint:
-app.get('/apod', async (req, res) => {
+app.get('/api/apod', async (req, res) => {
     try {
         let image = await fetch(`https://api.nasa.gov/planetary/apod?api_key=${process.env.API_KEY}`)
             .then(response => response.json());
@@ -24,7 +24,7 @@ app.get('/apod', async (req, res) => {
 })
 
 // rover latest pictures API endpoint:
-app.get('/latest_photos/:roverName', async (req, res) => {
+app.get('/api/latest_photos/:roverName', async (req, res) => {
     const roverName = req.params.roverName;
     let now = new Date();
     // add 1 to month b/c JS dates are stupid:
@@ -40,7 +40,7 @@ app.get('/latest_photos/:roverName', async (req, res) => {
 })
 
 // rover photos API, getting multiple days worth of pictures
-app.get('/photos/days/:roverName/:date/:duration/', async (req, res) => {
+app.get('/api/photos/days/:roverName/:date/:duration/', async (req, res) => {
     
     try {
         const roverName = req.params.roverName;
@@ -82,7 +82,7 @@ app.get('/photos/days/:roverName/:date/:duration/', async (req, res) => {
 })
 
 // API call to get a certain amount of rover photos
-app.get('/photos/amount/:roverName/:date/:amount', async (req, res) => {
+app.get('/api/photos/amount/:roverName/:date/:amount', async (req, res) => {
     
     try {
         const roverName = req.params.roverName;
@@ -132,7 +132,7 @@ app.get('/photos/amount/:roverName/:date/:amount', async (req, res) => {
 })
 
 // rover manifest API endpoint:
-app.get('/manifests/:roverName', async (req, res) => {
+app.get('/api/manifests/:roverName', async (req, res) => {
     const roverName = req.params.roverName;
     try {
         const data = await fetch(`https://api.nasa.gov/mars-photos/api/v1/manifests/${roverName}/?api_key=${process.env.API_KEY}`)
@@ -144,7 +144,7 @@ app.get('/manifests/:roverName', async (req, res) => {
 })
 
 // NASA EPIC API call to get an image URL of photo of Earth:
-app.get('/earth', async (req, res) => {
+app.get('/api/earth', async (req, res) => {
     try {
         // get array of natural earth images from the latest date:
         // const nat_imgs = await fetch(`https://api.nasa.gov/EPIC/api/natural?api_key=${process.env.API_KEY}`)
@@ -184,5 +184,20 @@ app.get('/earth', async (req, res) => {
         console.log('error:', err);
     }
 })
+
+// redirects to point back to landing page.
+// these are necessary b/c I used history.pushState to change the URL, so user can use the browser back btn
+
+app.get('/earth', async (req, res) => {
+    res.redirect('/');
+});
+
+app.get('/apod', async (req, res) => {
+    res.redirect('/');
+});
+
+app.get('/mars_rovers', async (req, res) => {
+    res.redirect('/');
+});
 
 app.listen(process.env.PORT || port, () => console.log(`Mars Rover app listening on port ${port}!`))
