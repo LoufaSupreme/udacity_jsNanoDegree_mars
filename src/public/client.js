@@ -82,7 +82,7 @@ const App = (state) => {
                 </section>
                 <section class="specs-container">
                     ${writeMessage(loading_msg)}
-                    ${roverSpecs(manifest)}
+                    ${roverSpecs(manifest, mkSpan, wrapStatus)}
                 </section>
                 <div class="filter-btn-container">
                     ${makePhotoFilterBtns(activeRover)}
@@ -101,7 +101,7 @@ const App = (state) => {
             <main>
                 ${Header(state.get('header'))}
                 <section id="content">
-                    ${earthPhoto(earthImg)}
+                    ${earthPhoto(earthImg, mkSpan)}
                 </section>
                 <footer>Copyright © Davis Innovations | Data from NASA</footer>
             </main>
@@ -210,7 +210,7 @@ const ImageOfTheDay = (apod) => {
     }
 }
 
-const earthPhoto = (earthImg) => {
+const earthPhoto = (earthImg, fn) => {
 
     if (Object.keys(earthImg).length === 0) {
         getEarthPhoto(store);
@@ -220,12 +220,12 @@ const earthPhoto = (earthImg) => {
         <img src="${earthImg.url}" height="auto" width="100%" />
         <div class="earth-info-container">
             <div id="earth-caption">${earthImg.caption}.</div>
-            <div>${mkSpan('Date:', 'earth-info')} ${earthImg.date}</div>
+            <div>${fn('Date:', 'earth-info')} ${earthImg.date}</div>
             <div class="earth-coords">
-                ${mkSpan('Centroid Coordinates:', 'earth-info')}
+                ${fn('Centroid Coordinates:', 'earth-info')}
                 <ul>
-                    <li>${mkSpan('Latitude:', 'earth-info-sm')} ${earthImg.lat}</li>
-                    <li>${mkSpan('Longitude:', 'earth-info-sm')} ${earthImg.lon}</li>
+                    <li>${fn('Latitude:', 'earth-info-sm')} ${earthImg.lat}</li>
+                    <li>${fn('Longitude:', 'earth-info-sm')} ${earthImg.lon}</li>
                 </ul> 
             </div>
         </div>
@@ -234,7 +234,7 @@ const earthPhoto = (earthImg) => {
 }
 
 // displays manifest info for the selected rover
-const roverSpecs = (manifest) => {
+const roverSpecs = (manifest, span, wrap) => {
     if (!manifest) {
         return "";
     }
@@ -250,25 +250,25 @@ const roverSpecs = (manifest) => {
             <div class="specs-title">Mars Rover: ${manifest.name}</div>
             <ul>
                 <li>
-                    ${mkSpan('Launched from Earth:', 'label')} ${launch_date.toDateString()}
+                    ${span('Launched from Earth:', 'label')} ${launch_date.toDateString()}
                 </li>
                 <li>
-                    ${mkSpan('Landed on Mars:', 'label')} ${land_date.toDateString()}
+                    ${span('Landed on Mars:', 'label')} ${land_date.toDateString()}
                 </li>
                 <li>
-                    ${mkSpan('Flight Time:','label')} ${Math.round(flight_time)} days
+                    ${span('Flight Time:','label')} ${Math.round(flight_time)} days
                 </li>
                 <li>
-                    ${mkSpan('Latest Day on Mars:','label')} ${latest_date.toDateString()} (Sol ${formatNumber(manifest.latest_sol)})
+                    ${span('Latest Day on Mars:','label')} ${latest_date.toDateString()} (Sol ${formatNumber(manifest.latest_sol)})
                 </li>
                 <li>
-                    ${mkSpan('Elapsed Mission Duration:','label')} ${formatNumber(Math.round(mission_duration))} days (${(mission_duration / 365).toFixed(1)} years)
+                    ${span('Elapsed Mission Duration:','label')} ${formatNumber(Math.round(mission_duration))} days (${(mission_duration / 365).toFixed(1)} years)
                 </li>
                 <li>
-                    ${mkSpan('Mission Status:','label')} ${wrapStatus(manifest.status)}
+                    ${span('Mission Status:','label')} ${wrap(manifest.status)}
                 </li>
                 <li>
-                    ${mkSpan('Total Photos Taken:','label')} ${formatNumber(manifest.total_photos)}
+                    ${span('Total Photos Taken:','label')} ${formatNumber(manifest.total_photos)}
                 </li>
             </ul>
         </div>
