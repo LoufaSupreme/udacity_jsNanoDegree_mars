@@ -1,3 +1,5 @@
+This project is available to view at https://project-red-rover.herokuapp.com/
+
 # Functional Programming with Javascript 
 
 ## Student Instructions
