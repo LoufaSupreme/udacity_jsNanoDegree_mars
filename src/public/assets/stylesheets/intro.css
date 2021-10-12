@@ -109,15 +109,16 @@
 
 @media (min-width: 1054px) {
 
-#intro-title {
-    font-size: 3.5rem;
-}
+  #intro-title {
+      font-size: 3.5rem;
+  }
 
-#intro-blurb {
-    font-size: 2.5rem;
-}
+  #intro-blurb {
+      font-size: 2.5rem;
+  }
 
-.intro-btn {
-    min-height: 300px;
-    min-width: 300px;
+  .intro-btn {
+      min-height: 300px;
+      min-width: 300px;
+  }
 }

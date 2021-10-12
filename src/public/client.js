@@ -196,7 +196,7 @@ const ImageOfTheDay = (apod) => {
     // check if the photo of the day is actually type video!
     if (apod.image.media_type === "video") {
         return (`
-            <iframe title="vimeo-player" src="${apod.image.url}" width="100%" height="350" frameborder="0" allowfullscreen></iframe>
+            <iframe title="vimeo-player" src="${apod.image.url}" max-width="100%" min-height="350" frameborder="0" allowfullscreen></iframe>
             
             <p id="apod-alt-link">Can't see the video? Go <a id="apod-video"href="${apod.image.url}">here</a> to check it out!</p>
             <h2 id="apod-title">${apod.image.title}</h2>
@@ -204,7 +204,7 @@ const ImageOfTheDay = (apod) => {
         `)
     } else {
         return (`
-            <img src="${apod.image.url}" height="350px" width="100%" />
+            <img src="${apod.image.url}" min-height="350px" max-width="100%" />
             <p id="apod-text">${apod.image.explanation}</p>
         `)
     }
