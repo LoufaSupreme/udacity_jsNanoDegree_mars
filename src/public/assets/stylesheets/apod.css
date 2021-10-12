@@ -7,6 +7,12 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    width: 100%;
+}
+
+#apod-img {
+    max-width: 100%;
+    max-height: 100vh;
 }
 
 #apod-text {
@@ -14,7 +20,7 @@
     max-width: 90%;
 }
 
-#apod-video {
+#apod-video-link {
     color: rgb(106, 106, 236);
 }
 

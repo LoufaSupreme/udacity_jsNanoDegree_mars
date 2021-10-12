@@ -198,13 +198,13 @@ const ImageOfTheDay = (apod) => {
         return (`
             <iframe title="vimeo-player" src="${apod.image.url}" max-width="100%" min-height="350" frameborder="0" allowfullscreen></iframe>
             
-            <p id="apod-alt-link">Can't see the video? Go <a id="apod-video"href="${apod.image.url}">here</a> to check it out!</p>
+            <p id="apod-alt-link">Can't see the video? Go <a id="apod-video-link" href="${apod.image.url}">here</a> to check it out!</p>
             <h2 id="apod-title">${apod.image.title}</h2>
             <p id="apod-text">${apod.image.explanation}</p>
         `)
     } else {
         return (`
-            <img src="${apod.image.url}" min-height="350px" max-width="100%" />
+            <img id="apod-img" src="${apod.image.url}"/>
             <p id="apod-text">${apod.image.explanation}</p>
         `)
     }
