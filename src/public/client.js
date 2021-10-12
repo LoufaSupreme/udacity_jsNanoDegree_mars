@@ -217,10 +217,11 @@ const earthPhoto = (earthImg, fn) => {
         return '';
     } else {
         return `
-        <img src="${earthImg.url}" height="auto" width="100%" />
+        <img id="earth-img" src="${earthImg.url}"/>
         <div class="earth-info-container">
             <div id="earth-caption">${earthImg.caption}.</div>
             <div>${fn('Date:', 'earth-info')} ${earthImg.date}</div>
+            <div>${fn('Colour:', 'earth-info')} ${earthImg.style}</div>
             <div class="earth-coords">
                 ${fn('Centroid Coordinates:', 'earth-info')}
                 <ul>

@@ -58,6 +58,8 @@ main {
   padding: 20px;
   padding-bottom: 0px;
   justify-items: center;
+  /* justify-content: center; */
+  /* align-items: center; */
 }
 
 h1 {

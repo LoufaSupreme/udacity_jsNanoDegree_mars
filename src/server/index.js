@@ -147,8 +147,8 @@ app.get('/api/manifests/:roverName', async (req, res) => {
 app.get('/api/earth', async (req, res) => {
     try {
         // get array of natural earth images from the latest date:
-        // const nat_imgs = await fetch(`https://api.nasa.gov/EPIC/api/natural?api_key=${process.env.API_KEY}`)
-        //     .then(res => res.json());
+        const nat_imgs = await fetch(`https://api.nasa.gov/EPIC/api/natural?api_key=${process.env.API_KEY}`)
+            .then(res => res.json());
         
         // get array of enhanced earth images from the latest date:
         const enhanced_imgs = await fetch(`https://api.nasa.gov/EPIC/api/enhanced?api_key=${process.env.API_KEY}`)
@@ -156,29 +156,58 @@ app.get('/api/earth', async (req, res) => {
             .catch(err => console.log(err));
 
         const images = [];
-        // nat_imgs.forEach(img => images.push(img));
-        enhanced_imgs.forEach(img => images.push(img));
+        nat_imgs.map(img => {
+            // take the date of the image out and make a JS date from it:
+            const d = new Date(img.date);
+
+            // convert the date to the correct format YYYY-MM-DD:
+            const date = `${d.getFullYear()}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getDate().toString().padStart(2,'0')}`;
+
+            // construct API URL from the above image/date.  The API directly returns an image, so this URL can be used directly as an img src.
+            // NOTE: api_key will be visible in html doing this...
+            const url = `https://api.nasa.gov/EPIC/archive/natural/${date}/png/${img.image}.png?api_key=${process.env.API_KEY}`;
+            
+            const img_obj = {
+                url: url,
+                style: 'Natural',
+                caption: img.caption,
+                date: img.date,
+                lat: img.centroid_coordinates.lat,
+                lon: img.centroid_coordinates.lon,
+            };
+
+            return img_obj;
+
+        }).forEach(img => images.push(img));  // push into images array
+
+        enhanced_imgs.map(img => {
+            // take the date of the image out and make a JS date from it:
+            const d = new Date(img.date);
+
+            // convert the date to the correct format YYYY-MM-DD:
+            const date = `${d.getFullYear()}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getDate().toString().padStart(2,'0')}`;
+
+            // construct API URL from the above image/date.  The API directly returns an image, so this URL can be used directly as an img src.
+            // NOTE: api_key will be visible in html doing this...
+            const url = `https://api.nasa.gov/EPIC/archive/enhanced/${date}/png/${img.image}.png?api_key=${process.env.API_KEY}`;
+            
+            const img_obj = {
+                url: url,
+                style: 'Enhanced',
+                caption: img.caption,
+                date: img.date,
+                lat: img.centroid_coordinates.lat,
+                lon: img.centroid_coordinates.lon,
+            };
+
+            return img_obj;
+
+        }).forEach(img => images.push(img));
 
         // pick one of the returned imgs at random:
-        const random_img = images[Math.floor(Math.random() * images.length) + 1];
+        const random_img = images[Math.floor(Math.random() * images.length)];
 
-        // take the date of the image out and make a JS date from it:
-        const d = new Date(random_img.date);
-        // convert the date to the correct format YYYY-MM-DD:
-        const date = `${d.getFullYear()}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getDate().toString().padStart(2,'0')}`;
-
-        // construct API URL from the above image/date.  The API directly returns an image, so this URL can be used directly as an img src.
-        const url = `https://api.nasa.gov/EPIC/archive/enhanced/${date}/png/${random_img.image}.png?api_key=${process.env.API_KEY}`;
-
-        const img_obj = {
-            url: url,
-            caption: random_img.caption,
-            date: random_img.date,
-            lat: random_img.centroid_coordinates.lat,
-            lon: random_img.centroid_coordinates.lon,
-        }
-
-        res.send(img_obj);
+        res.send(random_img);
 
     } catch (err) {
         console.log('error:', err);
