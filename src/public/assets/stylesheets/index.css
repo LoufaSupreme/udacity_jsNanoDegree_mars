@@ -21,8 +21,7 @@ body {
   min-height: 100vh;
   background-image: url('../images/stars.jpg');
   background-repeat:repeat;
-  /* background-size: 100% auto; */
-  background-size:initial;
+  background-size:cover;
   background-color: black;
 }
 
@@ -379,5 +378,5 @@ footer {
 /* -------------------  LARGE SCREENS  -------------- */
 
 @media (min-width: 1824px) {
-  /* use mobile */
+ /* use mobile */
 }
