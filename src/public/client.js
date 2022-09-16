@@ -4,7 +4,7 @@ let store = Immutable.Map({
     view: 'intro',
     loading_msg: '',
     apod: '',
-    rovers: ['Curiosity', 'Opportunity', 'Spirit'],
+    rovers: ['Perseverance', 'Curiosity', 'Opportunity', 'Spirit'],
     activeRover: 'None',
     roverPhotos: [],
     photoSelection: 'latest',
