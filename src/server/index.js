@@ -33,7 +33,7 @@ app.get('/api/latest_photos/:roverName', async (req, res) => {
     now = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}`;
 
     try {
-        const data = await fetch(`https://api.nasa.gov/mars-photos/api/v1/rovers/${roverName}/latest_photos?earth_date=${now}&api_key=${process.env.API_KEY}`)
+        const data = await fetch(`https://mars.nasa.gov/rss/api/?feed=raw_images&category=mars2020,ingenuity&feedtype=json&ver=1.2&num=100&page=0&&order=sol+desc&&&`)
             .then(res => res.json());
         res.send({ data });
     } catch (err) {
@@ -149,15 +149,9 @@ app.get('/api/manifests/:roverName', async (req, res) => {
 app.get('/api/earth', async (req, res) => {
     try {
         // get array of natural earth images from the latest date:
-        // const nat_imgs = await fetch(`https://api.nasa.gov/EPIC/api/natural/date/2025-12-01?api_key=${process.env.API_KEY}`)
         const nat_imgs = await fetch('https://epic.gsfc.nasa.gov/api/natural/')
             .then(res => res.json())
             .catch(err => console.error(err));
-        
-        // get array of enhanced earth images from the latest date:
-        // const enhanced_imgs = await fetch(`https://api.nasa.gov/EPIC/api/enhanced?api_key=${process.env.API_KEY}`)
-        //     .then(res => res.json())
-        //     .catch(err => console.log(err));
 
         const images = [];
         nat_imgs.map(img => {

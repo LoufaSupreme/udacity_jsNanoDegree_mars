@@ -4,11 +4,11 @@ let store = Immutable.Map({
     view: 'intro',
     loading_msg: '',
     apod: '',
-    rovers: ['Perseverance', 'Curiosity', 'Opportunity', 'Spirit'],
+    rovers: ['Perseverance', 'Curiosity',],
     activeRover: 'None',
     roverPhotos: [],
     photoSelection: 'latest',
-    photoAmount: 25,
+    photoAmount: 27,
     manifest: '',
     earthImg: {},
 });
@@ -276,19 +276,35 @@ const roverSpecs = (manifest, span, wrap) => {
     `)
 }
 
+const months = {
+    0: 'January',
+    1: 'February',
+    2: 'March',
+    3: 'April',
+    4: 'May',
+    5: 'June',
+    6: 'July',
+    7: 'August',
+    8: 'September',
+    9: 'October',
+    10: 'November',
+    11: 'December',
+}
+
 // takes an array of image objects from Nasa and returns html
 const imgHandler = (photo_array, amount) => {
    
     const pics = photo_array
-        // .sort((a,b) => a.id > b.id ? -1 : 1)
         .slice(-amount)  // take only the amount to be displayed
         .map(pic => {
+            const d = new Date(pic.date_received);
+            const date = `${d.getHours()}:${d.getMinutes()}${d.getHours() > 11 ? 'PM' : 'AM'} ${months[d.getMonth()]} ${d.getDay()}, ${d.getFullYear()}`
             return (`
                 <div class="img-date-box">
                     <div class="img-container">
-                        <img src="${pic.img_src}" class="photo" title="Sol ${pic.sol} from ${pic.rover.name}'s ${pic.camera.name}"/>
+                        <img src="${pic.image_files.medium}" class="photo" title="Sol ${pic.sol} from rover's ${pic.camera.instrument}"/>
                     </div>
-                    <div id="pic-date">${pic.earth_date}</div>
+                    <div id="pic-date">${date}</div>
                 </div>
             `);
         })
@@ -407,19 +423,20 @@ const addListeners = (root, state) => {
             const modal_img = modal.querySelector('.full-img');
             const caption = modal.querySelector('.caption');
             
+            // find photo 
+            const photos = state.get('roverPhotos');
+            const photo = photos.filter((pic) => {
+                return pic.image_files.medium === e.target.src;
+            });
+            
             // adjust modal
             modal.classList.add('open');
             modal_img.classList.add('open');
-            modal_img.src = e.target.src;
+            modal_img.src = photo[0].image_files.full_res;
 
             //adjust modal caption
-            const photos = state.get('roverPhotos');
-            const photo = photos.filter((pic) => {
-                return pic.img_src === e.target.src;
-            });
             caption.innerHTML = `
-                <p>Captured By: ${photo[0].rover.name}'s ${photo[0].camera.name} (${photo[0].camera.full_name})</p>
-                <p>Date: ${photo[0].earth_date} (Sol ${photo[0].sol})</p>
+                <p>${photo[0].caption}</p>
             `;
         })
     })
@@ -627,7 +644,7 @@ const getLatestPhotos = async (roverName) => {
     
     const roverPhotos = await fetch(`/api/latest_photos/${roverName}`)
         .then(res => res.json())
-        .then(res => res.data.latest_photos)
+        .then(res => res.data.images)
         .catch(err => console.log(err));
     
     console.log('Latest Photos Received.')
@@ -665,14 +682,15 @@ const getNumPhotos = async (roverName, date, amount) => {
 // calls the NASA API multiple times 
 // then takes the results of those API calls (promises) and updates the store once, so that there is only one re-render of the page.
 const roverCall = async (state, roverName) => {
-    const manifest = getManifest(roverName);
+    // const manifest = getManifest(roverName);
     const photos = getLatestPhotos(roverName);
     
-    const promises = [manifest, photos];
+    // const promises = [manifest, photos];
+    const promises = [photos]
     Promise.all(promises)
         .then(results => {
-            state = state.set('manifest', results[0]);
-            state = state.set('roverPhotos', results[1]);
+            // state = state.set('manifest', results[0]);
+            state = state.set('roverPhotos', results[0]);
             state = state.set('loading_msg', '');
             state = state.set('activeRover', roverName);
             state = state.set('photoSelection', 'latest');
