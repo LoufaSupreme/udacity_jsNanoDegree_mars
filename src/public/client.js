@@ -7,7 +7,9 @@ let store = Immutable.Map({
     rovers: ['Perseverance', 'Curiosity',],
     activeRover: 'None',
     roverPhotos: [],
-    photoSelection: 'latest',
+    curiosityPhotos: [],
+    perseverancePhotos: [],
+    photoSelection: 'all',
     photoAmount: 27,
     manifest: '',
     earthImg: {},
@@ -82,10 +84,10 @@ const App = (state) => {
                 </section>
                 <section class="specs-container">
                     ${writeMessage(loading_msg)}
-                    ${roverSpecs(manifest, mkSpan, wrapStatus)}
+                    {roverSpecs(manifest, mkSpan, wrapStatus)}
                 </section>
                 <div class="filter-btn-container">
-                    ${makePhotoFilterBtns(activeRover)}
+                    {makePhotoFilterBtns(activeRover)}
                 </div>
                 <section>
                     ${showPhotos(state)}
@@ -297,12 +299,12 @@ const imgHandler = (photo_array, amount) => {
     const pics = photo_array
         .slice(-amount)  // take only the amount to be displayed
         .map(pic => {
-            const d = new Date(pic.date_received);
+            const d = new Date(pic.date_taken);
             const date = `${d.getHours()}:${d.getMinutes()}${d.getHours() > 11 ? 'PM' : 'AM'} ${months[d.getMonth()]} ${d.getDay()}, ${d.getFullYear()}`
             return (`
                 <div class="img-date-box">
                     <div class="img-container">
-                        <img src="${pic.image_files.medium}" class="photo" title="Sol ${pic.sol} from rover's ${pic.camera.instrument}"/>
+                        <img src="${pic.img_large_URL}" class="photo" title="Sol ${pic.sol} from rover's ${pic.instrument}"/>
                     </div>
                     <div id="pic-date">${date}</div>
                 </div>
@@ -356,7 +358,7 @@ const makeMoreBtn = (state) => {
         <div class="more-btn-container">
             <button class="nav-btn prev-btn" value="prev" onclick="getPrevPage(store)">Prev Page</button>
 
-            <span id="page-num">Photos ${photos.length-num_photos+1}-${photos.length} of ${formatNumber(tot_photos)} </span>
+            <span id="page-num">Photos {photos.length-num_photos+1}-{photos.length} of {formatNumber(tot_photos)} </span>
 
             <button class="nav-btn next-btn" value="next" onclick="getNextPage(store)">Next Page</button>
         </div>
@@ -376,6 +378,12 @@ const setMessage = (state, name) => {
     const msg = `Red Rover, Red Rover, Send ${mkSpan(name, 'loading-name')} On Over...[LOADING]`;
 
     state = state.set('loading_msg', msg);
+    updateStore(store, state);
+}
+
+// set the active rover
+const setRover = (state, name) => {
+    state = state.set('activeRover', name);
     updateStore(store, state);
 }
 
@@ -399,7 +407,9 @@ const addListeners = (root, state) => {
         buttons.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 setMessage(state, e.target.dataset.name);
-                roverCall(state, e.target.dataset.name);
+                // roverCall(state, e.target.dataset.name);
+                setRover(state, e.target.dataset.name);
+                showPhotos(state);
             });
         });
     }
@@ -424,15 +434,16 @@ const addListeners = (root, state) => {
             const caption = modal.querySelector('.caption');
             
             // find photo 
-            const photos = state.get('roverPhotos');
+            const activeRover = state.get('activeRover');
+            const photos = activeRover == 'Curiosity' ? state.get('curiosityPhotos'): state.get('perseverancePhotos');
             const photo = photos.filter((pic) => {
-                return pic.image_files.medium === e.target.src;
+                return pic.img_large_URL === e.target.src;
             });
             
             // adjust modal
             modal.classList.add('open');
             modal_img.classList.add('open');
-            modal_img.src = photo[0].image_files.full_res;
+            modal_img.src = photo[0].img_large_URL;
 
             //adjust modal caption
             caption.innerHTML = `
@@ -477,10 +488,16 @@ const photoLabel = (photoSelection) => {
 
 // displays array of photos from a rover:
 const showPhotos = (state) => {
-    const photos = state.get('roverPhotos');
+    const activeRover = state.get('activeRover');
+
+    let photos = [];
+    if (activeRover == 'Perseverance') photos = state.get('perseverancePhotos');
+    else if (activeRover == 'Curiosity') photos = state.get('curiosityPhotos');
+    
     const amount = state.get('photoAmount');
     const selection = state.get('photoSelection');
     
+    console.log('running showPhotos', photos);
     if (photos.length === 0) {
         return "";
     }
@@ -637,6 +654,64 @@ const getManifest = async (roverName) => {
     return manifest;
 }
 
+// API call to get Perseverance rover images
+const getPerseveranceImages = async (numPics) => {
+    console.log(`Fetching ${numPics} images for Rover Perseverance`);
+
+    const roverPhotos = await fetch(`/api/photos/perseverance/${numPics}`)
+        .then(res => res.json())
+        .then(res => res.data.images)
+        .catch(err => console.log(err));
+
+    const normalizedPhotos = roverPhotos.map(curr => {
+        const normalized = {
+            rover: 'perseverance',
+            image_ID: curr.imageid,
+            sol: curr.sol,
+            img_large_URL: curr.image_files.full_res,
+            img_small_URL: curr.image_files.medium,
+            instrument: curr.camera.instrument,
+            date_taken: curr.date_taken_utc,
+            date_received: curr.date_received,
+            title: curr.title,
+            caption: curr.caption,
+        };
+        return normalized;
+    });
+
+    console.log('Perseverance images received');
+    return normalizedPhotos;
+}
+
+// API call to get Curiosity rover images
+const getCuriosityImages = async (numPics) => {
+    console.log(`Fetching ${numPics} images for Rover Curiosity`);
+
+    const roverPhotos = await fetch(`/api/photos/curiosity/${numPics}`)
+        .then(res => res.json())
+        .then(res => res.data.items)
+        .catch(err => console.log(err));
+
+    const normalizedPhotos = roverPhotos.map(curr => {
+        const normalized = {
+            rover: 'curiosity',
+            image_ID: curr.id,
+            sol: curr.sol,
+            img_large_URL: curr.url,
+            img_small_URL: "",
+            instrument: curr.instrument,
+            date_taken: curr.date_taken,
+            date_received: curr.date_received,
+            title: curr.title,
+            caption: curr.description,
+        };
+        return normalized;
+    });
+
+    console.log('Curiosity images received');
+    return normalizedPhotos;
+}
+
 // API Call to get rover "latest_photos"
 const getLatestPhotos = async (roverName) => {    
 
@@ -681,19 +756,22 @@ const getNumPhotos = async (roverName, date, amount) => {
 
 // calls the NASA API multiple times 
 // then takes the results of those API calls (promises) and updates the store once, so that there is only one re-render of the page.
-const roverCall = async (state, roverName) => {
+const roverCall = async (state, roverName = "None") => {
     // const manifest = getManifest(roverName);
-    const photos = getLatestPhotos(roverName);
+    const numPics = state.get('photoAmount');
+    const curiosityPhotos = getCuriosityImages(numPics);
+    const perseverancePhotos = getPerseveranceImages(numPics);
     
     // const promises = [manifest, photos];
-    const promises = [photos]
+    const promises = [curiosityPhotos, perseverancePhotos]
     Promise.all(promises)
         .then(results => {
             // state = state.set('manifest', results[0]);
-            state = state.set('roverPhotos', results[0]);
+            state = state.set('curiosityPhotos', results[0]);
+            state = state.set('perseverancePhotos', results[1]);
             state = state.set('loading_msg', '');
             state = state.set('activeRover', roverName);
-            state = state.set('photoSelection', 'latest');
+            state = state.set('photoSelection', 'all');
             updateStore(store, state);
         })
         .catch(err => console.log(err));    
@@ -706,6 +784,7 @@ const roverCall = async (state, roverName) => {
 window.addEventListener('load', () => {
     history.pushState({view: 'intro'}, '', '');
     render(root, store);
+    roverCall(store);
 });
 
 // popstate executes when browser back btn is pressed. This will return user to intro landing page.  Works in conjunction with history.pushState();

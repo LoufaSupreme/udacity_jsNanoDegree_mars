@@ -83,6 +83,26 @@ app.get('/api/photos/days/:roverName/:date/:duration/', async (req, res) => {
     }            
 })
 
+// get certain amount of images for rover perseverance
+app.get('/api/photos/perseverance/:numPics', async (req, res) => {
+    const numPics = req.params.numPics;
+    console.log(`Fetching ${numPics} images for rover Perseverance`);
+    const url = `https://mars.nasa.gov/rss/api/?feed=raw_images&category=mars2020,ingenuity&feedtype=json&ver=1.2&num=${numPics}&page=0&&order=sol+desc&&&`;
+    const response = await fetch(url)
+    const data = await response.json();
+    res.send({ data });
+})
+
+// get certain amount of images for rover curiosity
+app.get('/api/photos/curiosity/:numPics', async (req, res) => {
+    const numPics = req.params.numPics;
+    console.log(`Fetching ${numPics} images for rover Curiosity`);
+    const url = `https://mars.nasa.gov/api/v1/raw_image_items/?order=sol+desc%2Cinstrument_sort+asc%2Csample_type_sort+asc%2C+date_taken+desc&per_page=${numPics}&page=0&condition_1=msl%3Amission&search=&extended=thumbnail%3A%3Asample_type%3A%3Anoteq`;
+    const response = await fetch(url)
+    const data = await response.json();
+    res.send({ data });
+})
+
 // API call to get a certain amount of rover photos
 app.get('/api/photos/amount/:roverName/:date/:amount', async (req, res) => {
     
