@@ -4,14 +4,33 @@ let store = Immutable.Map({
     view: 'intro',
     loading_msg: '',
     apod: '',
-    rovers: ['Perseverance', 'Curiosity',],
+    rovers: ['Curiosity', 'Perseverance'],
     activeRover: 'None',
     roverPhotos: [],
     curiosityPhotos: [],
     perseverancePhotos: [],
-    photoSelection: 'all',
+    photoSelection: 'latest',
     photoAmount: 27,
-    manifest: '',
+    manifest: {
+        Perseverance: {
+            status: 'Active',
+            launch_date: '07/30/2020',
+            land_date: '02/18/2021',
+            cost: '$2.4 Billion USD',
+            weight: '4,060.5 kilograms',
+            max_speed: '0.12 km/hr',
+            objective: 'Seak signs of ancient life and collect samples of rock and regolith for possible Earth return.'
+        },
+        Curiosity: {
+            status: 'Active',
+            launch_date: '11/26/2011',
+            land_date: '08/06/2012',
+            cost: '$2.5 Billion USD',
+            weight: '899 kilograms',
+            max_speed: '0.14 km/hr',
+            objective: 'Determine if Mars was ever able to support microbial life.'
+        }
+    },
     earthImg: {},
 });
 
@@ -84,11 +103,9 @@ const App = (state) => {
                 </section>
                 <section class="specs-container">
                     ${writeMessage(loading_msg)}
-                    {roverSpecs(manifest, mkSpan, wrapStatus)}
+                    ${roverSpecs(manifest, activeRover, mkSpan, wrapStatus)}
                 </section>
-                <div class="filter-btn-container">
-                    {makePhotoFilterBtns(activeRover)}
-                </div>
+                <div class="filter-btn-container"></div>
                 <section>
                     ${showPhotos(state)}
                 </section>
@@ -237,21 +254,26 @@ const earthPhoto = (earthImg, fn) => {
 }
 
 // displays manifest info for the selected rover
-const roverSpecs = (manifest, span, wrap) => {
-    if (!manifest) {
+const roverSpecs = (manifest, activeRover, span, wrap) => {
+    if (!manifest || activeRover === 'None') {
         return "";
     }
+
+    manifest = manifest[activeRover]; 
     
     const launch_date = new Date(manifest.launch_date.replace(/-/g, '/'));
-    const land_date = new Date(manifest.landing_date.replace(/-/g, '/'));
-    const latest_date = new Date(manifest.latest_date.replace(/-/g, '/'));
+    const land_date = new Date(manifest.land_date.replace(/-/g, '/'));
+    const latest_date = new Date();
     const flight_time = (land_date.getTime() - launch_date.getTime()) / (1000*60*60*24);
     const mission_duration = (latest_date.getTime() - land_date.getTime()) / (1000*60*60*24);
 
     return (`
         <div>
-            <div class="specs-title">Mars Rover: ${manifest.name}</div>
+            <div class="specs-title">Mars Rover: ${activeRover}</div>
             <ul>
+                <li>
+                    ${span('Mission Status:','label')} ${wrap(manifest.status)}
+                </li>
                 <li>
                     ${span('Launched from Earth:', 'label')} ${launch_date.toDateString()}
                 </li>
@@ -262,16 +284,19 @@ const roverSpecs = (manifest, span, wrap) => {
                     ${span('Flight Time:','label')} ${Math.round(flight_time)} days
                 </li>
                 <li>
-                    ${span('Latest Day on Mars:','label')} ${latest_date.toDateString()} (Sol ${formatNumber(manifest.latest_sol)})
-                </li>
-                <li>
                     ${span('Elapsed Mission Duration:','label')} ${formatNumber(Math.round(mission_duration))} days (${(mission_duration / 365).toFixed(1)} years)
                 </li>
                 <li>
-                    ${span('Mission Status:','label')} ${wrap(manifest.status)}
+                    ${span('Top Speed:','label')} ${manifest.max_speed}
                 </li>
                 <li>
-                    ${span('Total Photos Taken:','label')} ${formatNumber(manifest.total_photos)}
+                    ${span('Weight:','label')} ${manifest.weight}
+                </li>
+                <li>
+                    ${span('Cost:','label')} ${manifest.cost}
+                </li>
+                <li>
+                    ${span('Objective:','label')} ${manifest.objective}
                 </li>
             </ul>
         </div>
@@ -345,22 +370,18 @@ const makePhotoFilterBtns = (activeRover) => {
 // makes a Next Page and Prev Page button at bottom of page
 // calls the getNextPage and getPrevPage function
 const makeMoreBtn = (state) => {
-    const tag = state.get('photoSelection');
-    const tot_photos = state.get('manifest').total_photos;
-    const photos = state.get('roverPhotos');
+    const activeRover = state.get('activeRover');
+    const photos = activeRover == "Curiosity" ? state.get('curiosityPhotos') : state.get('perseverancePhotos');
+    const tot_photos = photos.length;
     const num_photos = state.get('photoAmount');
-    
-    if (tag != 'all') {
-        return '';
-    }
 
     return `
         <div class="more-btn-container">
-            <button class="nav-btn prev-btn" value="prev" onclick="getPrevPage(store)">Prev Page</button>
+            <button class="nav-btn prev-btn" value="prev" onclick="getPrevPage(store)">Prev</button>
 
-            <span id="page-num">Photos {photos.length-num_photos+1}-{photos.length} of {formatNumber(tot_photos)} </span>
+            <span id="page-num">Photos ${photos.length-num_photos+1}-${num_photos} of ${formatNumber(tot_photos)} </span>
 
-            <button class="nav-btn next-btn" value="next" onclick="getNextPage(store)">Next Page</button>
+            <button class="nav-btn next-btn" value="next" onclick="getNextPage(store)">Next</button>
         </div>
     `;
 }
@@ -497,7 +518,6 @@ const showPhotos = (state) => {
     const amount = state.get('photoAmount');
     const selection = state.get('photoSelection');
     
-    console.log('running showPhotos', photos);
     if (photos.length === 0) {
         return "";
     }
