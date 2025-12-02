@@ -12,6 +12,8 @@ app.use(bodyParser.json())
 
 app.use('/', express.static(path.join(__dirname, '../public')))
 
+console.log(process.env.API_KEY)
+
 // Astronomy Photo of the Day API endpoint:
 app.get('/api/apod', async (req, res) => {
     try {
@@ -147,13 +149,15 @@ app.get('/api/manifests/:roverName', async (req, res) => {
 app.get('/api/earth', async (req, res) => {
     try {
         // get array of natural earth images from the latest date:
-        const nat_imgs = await fetch(`https://api.nasa.gov/EPIC/api/natural?api_key=${process.env.API_KEY}`)
-            .then(res => res.json());
+        // const nat_imgs = await fetch(`https://api.nasa.gov/EPIC/api/natural/date/2025-12-01?api_key=${process.env.API_KEY}`)
+        const nat_imgs = await fetch('https://epic.gsfc.nasa.gov/api/natural/')
+            .then(res => res.json())
+            .catch(err => console.error(err));
         
         // get array of enhanced earth images from the latest date:
-        const enhanced_imgs = await fetch(`https://api.nasa.gov/EPIC/api/enhanced?api_key=${process.env.API_KEY}`)
-            .then(res => res.json())
-            .catch(err => console.log(err));
+        // const enhanced_imgs = await fetch(`https://api.nasa.gov/EPIC/api/enhanced?api_key=${process.env.API_KEY}`)
+        //     .then(res => res.json())
+        //     .catch(err => console.log(err));
 
         const images = [];
         nat_imgs.map(img => {
@@ -165,7 +169,7 @@ app.get('/api/earth', async (req, res) => {
 
             // construct API URL from the above image/date.  The API directly returns an image, so this URL can be used directly as an img src.
             // NOTE: api_key will be visible in html doing this...
-            const url = `https://api.nasa.gov/EPIC/archive/natural/${date}/png/${img.image}.png?api_key=${process.env.API_KEY}`;
+            const url = `https://epic.gsfc.nasa.gov/archive/natural/${date}/png/${img.image}.png`;
             
             const img_obj = {
                 url: url,
@@ -179,30 +183,6 @@ app.get('/api/earth', async (req, res) => {
             return img_obj;
 
         }).forEach(img => images.push(img));  // push into images array
-
-        enhanced_imgs.map(img => {
-            // take the date of the image out and make a JS date from it:
-            const d = new Date(img.date);
-
-            // convert the date to the correct format YYYY-MM-DD:
-            const date = `${d.getFullYear()}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getDate().toString().padStart(2,'0')}`;
-
-            // construct API URL from the above image/date.  The API directly returns an image, so this URL can be used directly as an img src.
-            // NOTE: api_key will be visible in html doing this...
-            const url = `https://api.nasa.gov/EPIC/archive/enhanced/${date}/png/${img.image}.png?api_key=${process.env.API_KEY}`;
-            
-            const img_obj = {
-                url: url,
-                style: 'Enhanced',
-                caption: img.caption,
-                date: img.date,
-                lat: img.centroid_coordinates.lat,
-                lon: img.centroid_coordinates.lon,
-            };
-
-            return img_obj;
-
-        }).forEach(img => images.push(img));
 
         // pick one of the returned imgs at random:
         const random_img = images[Math.floor(Math.random() * images.length)];
