@@ -378,11 +378,11 @@ const makeMoreBtn = (state) => {
 
     return `
         <div class="more-btn-container">
-            <button class="nav-btn prev-btn" value="prev" onclick="getPrevPage(store)">Prev</button>
+            <button class="nav-btn prev-btn" value="prev"">Prev</button>
 
             <span id="page-num">Photos ${pageIndex*num_photos+1}-${pageIndex*num_photos+num_photos} </span>
 
-            <button class="nav-btn next-btn" value="next" onclick="getNextPage(store)">Next</button>
+            <button class="nav-btn next-btn" value="next">Next</button>
         </div>
     `;
 }
@@ -396,8 +396,8 @@ const writeMessage = (msg) => {
 }
 
 // create a loading message and add it to store
-const setMessage = (state, name) => {
-    const msg = `Red Rover, Red Rover, Send ${mkSpan(name, 'loading-name')} On Over...[LOADING]`;
+const setMessage = (state, name, msg = null) => {
+    if (!msg) msg = `Red Rover, Red Rover, Send ${mkSpan(name, 'loading-name')} On Over...[LOADING]`;
 
     state = state.set('loading_msg', msg);
     updateStore(store, state);
@@ -440,6 +440,17 @@ const addListeners = (root, state) => {
                 roverCall(store, e.target.dataset.name);
             });
         });
+
+        // next and prev image page btns
+        const prev = root.querySelector('.prev-btn');
+        const next = root.querySelector('.next-btn');
+        if (next) next.addEventListener('click', (e) => {
+            setMessage(store, store.get('activeRover'), "One moment...contacting space...")
+            getNextPage(state);
+        })
+        if (prev) prev.addEventListener('click', (e) => {
+            // getPrevPage(state);
+        })
     }
 
     // full sized image modal
