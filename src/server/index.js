@@ -84,20 +84,22 @@ app.get('/api/photos/days/:roverName/:date/:duration/', async (req, res) => {
 })
 
 // get certain amount of images for rover perseverance
-app.get('/api/photos/perseverance/:numPics', async (req, res) => {
+app.get('/api/photos/perseverance/:numPics/:page', async (req, res) => {
     const numPics = req.params.numPics;
+    const page = req.params.page;
     console.log(`Fetching ${numPics} images for rover Perseverance`);
-    const url = `https://mars.nasa.gov/rss/api/?feed=raw_images&category=mars2020,ingenuity&feedtype=json&ver=1.2&num=${numPics}&page=0&&order=sol+desc&&&`;
+    const url = `https://mars.nasa.gov/rss/api/?feed=raw_images&category=mars2020,ingenuity&feedtype=json&ver=1.2&num=${numPics}&page=${page}&&order=sol+desc&&&`;
     const response = await fetch(url)
     const data = await response.json();
     res.send({ data });
 })
 
 // get certain amount of images for rover curiosity
-app.get('/api/photos/curiosity/:numPics', async (req, res) => {
+app.get('/api/photos/curiosity/:numPics/:page', async (req, res) => {
     const numPics = req.params.numPics;
+    const page = req.params.page;
     console.log(`Fetching ${numPics} images for rover Curiosity`);
-    const url = `https://mars.nasa.gov/api/v1/raw_image_items/?order=sol+desc%2Cinstrument_sort+asc%2Csample_type_sort+asc%2C+date_taken+desc&per_page=${numPics}&page=0&condition_1=msl%3Amission&search=&extended=thumbnail%3A%3Asample_type%3A%3Anoteq`;
+    const url = `https://mars.nasa.gov/api/v1/raw_image_items/?order=sol+desc%2Cinstrument_sort+asc%2Csample_type_sort+asc%2C+date_taken+desc&per_page=${numPics}&page=${page}&condition_1=msl%3Amission&search=&extended=thumbnail%3A%3Asample_type%3A%3Anoteq`;
     const response = await fetch(url)
     const data = await response.json();
     res.send({ data });
@@ -151,18 +153,6 @@ app.get('/api/photos/amount/:roverName/:date/:amount', async (req, res) => {
     catch (err) {
         console.log(err);
     }            
-})
-
-// rover manifest API endpoint:
-app.get('/api/manifests/:roverName', async (req, res) => {
-    const roverName = req.params.roverName;
-    try {
-        const data = await fetch(`https://api.nasa.gov/mars-photos/api/v1/manifests/${roverName}/?api_key=${process.env.API_KEY}`)
-            .then(res => res.json());
-        res.send({ data });
-    } catch (err) {
-        console.log('error:', err);
-    }
 })
 
 // NASA EPIC API call to get an image URL of photo of Earth:

@@ -6,7 +6,7 @@ let store = Immutable.Map({
     apod: '',
     rovers: ['Curiosity', 'Perseverance'],
     activeRover: 'None',
-    roverPhotos: [],
+    imagePage: 0,
     curiosityPhotos: [],
     perseverancePhotos: [],
     photoSelection: 'latest',
@@ -41,6 +41,11 @@ const root = document.getElementById('root');
 const updateStore = (state, newState) => {
     store = state.merge(newState)
     render(root, store)
+}
+
+// update app's state w/o re-rendering
+const updateStoreNoRender = (state, newState) => {
+    store = state.merge(newState);
 }
 
 // render html:
@@ -319,10 +324,9 @@ const months = {
 }
 
 // takes an array of image objects from Nasa and returns html
-const imgHandler = (photo_array, amount) => {
+const imgHandler = (photo_array) => {
    
     const pics = photo_array
-        .slice(-amount)  // take only the amount to be displayed
         .map(pic => {
             const d = new Date(pic.date_taken);
             const date = `${d.getHours()}:${d.getMinutes()}${d.getHours() > 11 ? 'PM' : 'AM'} ${months[d.getMonth()]} ${d.getDay()}, ${d.getFullYear()}`
@@ -508,7 +512,7 @@ const photoLabel = (photoSelection) => {
 }
 
 // displays array of photos from a rover:
-const showPhotos = (state) => {
+const showPhotos = (state, startIndex = 0) => {
     const activeRover = state.get('activeRover');
 
     let photos = [];
@@ -517,6 +521,7 @@ const showPhotos = (state) => {
     
     const amount = state.get('photoAmount');
     const selection = state.get('photoSelection');
+    photos = photos.slice(startIndex, startIndex + amount);
     
     if (photos.length === 0) {
         return "";
@@ -528,7 +533,7 @@ const showPhotos = (state) => {
                     ${photoLabel(selection)}
                     ${makeMoreBtn(state)}
                 </div>
-                ${imgHandler(photos, amount)}
+                ${imgHandler(photos)}
             </div>
         `;
     }
@@ -564,51 +569,21 @@ const filterPhotos = async (tag, state) => {
 // activated when the Next Page button is clicked
 // gets the next set of photos from the rover by making another API call
 const getNextPage = async (state) => {
-    const roverName = state.get('manifest').name;
-    const current_photos = state.get('roverPhotos');
-    // find the latest date of the photos currently on the screen:
-    const latest_date = current_photos[current_photos.length-1].earth_date;
-    const numPhotos = state.get('photoAmount');
-    // find the tot. # of photos taken on the latest date
-    // this is important so that we can fetch atleast this many, so we know we always have new unique photos (otherwise could just keep fetching duplicates):
-    const totPhotosThatDay = state.get('manifest').photo_info_list
-        .find(sol => sol.earth_date === latest_date).total_photos;
-    
-    // we need to fetch a min. of either 2x the amount of photos currently displayed, or the total num of photos taken that day + num photos currently displayed
-    // this will ensure that when we fetch a new batch of photos, even though we're starting at the first photo of the specified day, we'll fetch enough photos that atleast numPhotos of them will be unique (not duplicates):
-    const numPicsToFetch = Math.max(numPhotos*2, totPhotosThatDay+numPhotos);
+    const roverName = state.get('activeRover');
+    const numPics = state.get('photoAmount');
+    let page = state.get('imagePage') + 1;
 
-    // fetching way more than needed so if we got duplicates we can remove them and still have 100% new photos left over:
-    const photos = await getNumPhotos(roverName, latest_date, numPicsToFetch);
-    
-    // filter returned photos array to remove photos already displayed:
-    console.log('Filtering out duplicate images.');
-    // have to map to a new array of IDs, b/c JS can't check equality of 2 objects:
-    const filteredPhotos = photos.filter(pic => {
-        const current_IDs = current_photos.map(p => p.id);
-        return !current_IDs.includes(pic.id);
-    });
-
-    // pair it down to just the first results up to the specified number of photos to display:
-    console.log('Pairing down to specified display number.');
-    const finalPhotos = filteredPhotos.slice(0, numPhotos);
-    finalPhotos.forEach(pic => current_photos.push(pic));
-
-    state = state.set('roverPhotos', current_photos);
-    updateStore(store, state);    
-}
-
-// deletes the last 25 (or w/e photoAmount is set to) photos from the array
-const getPrevPage = (state) => {
-    const deleteNum = state.get('photoAmount');
-    let photos = state.get('roverPhotos');
-    
-    // if the photo array is > 25 pics, then delete the last 25 images
-    if (photos.length > deleteNum) {
-        photos = photos.splice(0, photos.length-deleteNum);
+    if (roverName === 'Curiosity') {
+        photos = await getCuriosityImages(numPics, page);
+        state = state.set('curiosityPhotos', photos);
+        state = state.set('imagePage', page);
     }
-
-    state = state.set('roverPhotos', photos);
+    else if (roverName === 'Perseverance') {
+        photos = await getPerseveranceImages(numPics, page);
+        state = state.set('perseverancePhotos', photos);
+        state = state.set('imagePage', page);
+    }
+    
     updateStore(store, state);
 }
 
@@ -675,10 +650,10 @@ const getManifest = async (roverName) => {
 }
 
 // API call to get Perseverance rover images
-const getPerseveranceImages = async (numPics) => {
+const getPerseveranceImages = async (numPics, page) => {
     console.log(`Fetching ${numPics} images for Rover Perseverance`);
 
-    const roverPhotos = await fetch(`/api/photos/perseverance/${numPics}`)
+    const roverPhotos = await fetch(`/api/photos/perseverance/${numPics}/${page}`)
         .then(res => res.json())
         .then(res => res.data.images)
         .catch(err => console.log(err));
@@ -704,10 +679,10 @@ const getPerseveranceImages = async (numPics) => {
 }
 
 // API call to get Curiosity rover images
-const getCuriosityImages = async (numPics) => {
+const getCuriosityImages = async (numPics, page) => {
     console.log(`Fetching ${numPics} images for Rover Curiosity`);
 
-    const roverPhotos = await fetch(`/api/photos/curiosity/${numPics}`)
+    const roverPhotos = await fetch(`/api/photos/curiosity/${numPics}/${page}`)
         .then(res => res.json())
         .then(res => res.data.items)
         .catch(err => console.log(err));
@@ -777,16 +752,13 @@ const getNumPhotos = async (roverName, date, amount) => {
 // calls the NASA API multiple times 
 // then takes the results of those API calls (promises) and updates the store once, so that there is only one re-render of the page.
 const roverCall = async (state, roverName = "None") => {
-    // const manifest = getManifest(roverName);
     const numPics = state.get('photoAmount');
-    const curiosityPhotos = getCuriosityImages(numPics);
-    const perseverancePhotos = getPerseveranceImages(numPics);
+    const curiosityPhotos = await getCuriosityImages(numPics);
+    const perseverancePhotos = await getPerseveranceImages(numPics);
     
-    // const promises = [manifest, photos];
     const promises = [curiosityPhotos, perseverancePhotos]
     Promise.all(promises)
         .then(results => {
-            // state = state.set('manifest', results[0]);
             state = state.set('curiosityPhotos', results[0]);
             state = state.set('perseverancePhotos', results[1]);
             state = state.set('loading_msg', '');
