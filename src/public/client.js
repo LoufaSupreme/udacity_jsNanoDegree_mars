@@ -327,7 +327,7 @@ const imgHandler = (photo_array) => {
     const pics = photo_array
         .map(pic => {
             const d = new Date(pic.date_taken);
-            const date = `${d.getHours()}:${d.getMinutes()}${d.getHours() > 11 ? 'PM' : 'AM'} ${months[d.getMonth()]} ${d.getDay()}, ${d.getFullYear()}`
+            const date = formatDate(d);
             return (`
                 <div class="img-date-box">
                     <div class="img-container">
@@ -353,20 +353,6 @@ const makeButtons = (rovers) => {
     return (`
         <div class="btn-container">${html}</div>
     `);
-}
-
-// create buttons that change which rover photos are shown
-// only show the buttons if a rover is selected (i.e. activeRover is not None)
-const makePhotoFilterBtns = (activeRover) => {
-    
-    if (activeRover === 'None') {
-        return '';
-    }
-
-    return `
-        <button class="filter-btn" value="latest" onclick="filterPhotos(this.value, store)">Latest Photos</button>
-        <button class="filter-btn" value="all" onclick="filterPhotos(this.value, store)">All Photos</button>
-    `
 }
 
 // makes a Next Page and Prev Page button at bottom of page
@@ -504,6 +490,22 @@ function mkSpan(item, class_name) {
     return `<span class="${class_name}">${item}</span>`;
 }
 
+function formatDate(dateObj) {
+    let hours = dateObj.getHours() % 12;
+    hours = hours == 0 ? 12 : hours;
+
+    let mins = dateObj.getMinutes();
+    mins = mins < 10 ? `0${mins}` : mins;
+
+    const meridian = dateObj.getHours() >= 12 ? "PM" : "AM";
+    const month = months[dateObj.getMonth()];
+    const day = dateObj.getDay();
+    const year = dateObj.getFullYear();
+
+    const date = `${hours}:${mins}${meridian} ${month} ${day}, ${year}`
+    return date;
+}
+
 // takes the mission status and wraps it in a span depending on the value:
 function wrapStatus(status) {
     // capitalize first letter
@@ -546,33 +548,6 @@ const showPhotos = (state) => {
                 </div>
             </div>
         `;
-    }
-}
-
-// runs if "latest Photos", or "all photos" btns are clicked.
-// grabs photos from relevant API path
-const filterPhotos = async (tag, state) => {
-    const roverName = state.get('manifest').name;
-    const latest_date = state.get('manifest').latest_date;
-    const numPhotosToDisplay = state.get('photoAmount');
-
-    // show latest photos:
-    if (tag === 'latest') {
-        const photos = await getLatestPhotos(roverName);
-        state = state.set('roverPhotos', photos);
-        state = state.set('photoSelection', tag);
-        updateStore(store, state);    
-    } 
-    // show all photos (up to numPhotosToDisplay):
-    else if (tag === 'all') {
-        setMessage(state, roverName);
-        const photos = await getNumPhotos(roverName, latest_date, numPhotosToDisplay);
-        state = state.set('roverPhotos', photos);
-        state = state.set('photoSelection', tag);
-        updateStore(store, state);    
-    }
-    else {
-        return;
     }
 }
 
