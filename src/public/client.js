@@ -74,7 +74,7 @@ const App = (state) => {
                 <section id="intro-container">
                     <div id="intro-title">Project Red Rover</div>
                     <div id="intro-blurb">
-                        Explore Space with the NASA API
+                        Explore Space with NASA
                     </div>
                     <div class="intro-btn-container">
                         ${makeIntroBtns()}
@@ -513,15 +513,13 @@ const photoLabel = (photoSelection) => {
     }
 }
 
-// reset photo area
-
 // displays array of photos from a rover:
 const showPhotos = (state) => {
     const photos = state.get('roverPhotos');
-    const amount = state.get('photoAmount');
+    const loadingMsg = state.get('loading_msg');
     const selection = state.get('photoSelection');
     
-    if (photos.length === 0) {
+    if (photos.length === 0 || loadingMsg !== "") {
         return "";
     }
     else {
