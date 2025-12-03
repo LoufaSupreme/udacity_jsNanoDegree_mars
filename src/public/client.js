@@ -113,7 +113,6 @@ const App = (state) => {
                 <section>
                     ${showPhotos(state)}
                 </section>
-                ${makeMoreBtn(state)}
                 <footer>Copyright © Davis Innovations | Data from NASA</footer>
             </main>
         `;
@@ -533,6 +532,9 @@ const showPhotos = (state) => {
                     ${makeMoreBtn(state)}
                 </div>
                 ${imgHandler(photos)}
+                <div id="photo-box-label-container">
+                    ${makeMoreBtn(state)}
+                </div>
             </div>
         `;
     }
