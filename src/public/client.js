@@ -7,8 +7,7 @@ let store = Immutable.Map({
     rovers: ['Curiosity', 'Perseverance'],
     activeRover: 'None',
     imagePage: 0,
-    curiosityPhotos: [],
-    perseverancePhotos: [],
+    roverPhotos: [],
     photoSelection: 'latest',
     photoAmount: 27,
     manifest: {
@@ -374,16 +373,15 @@ const makePhotoFilterBtns = (activeRover) => {
 // makes a Next Page and Prev Page button at bottom of page
 // calls the getNextPage and getPrevPage function
 const makeMoreBtn = (state) => {
-    const activeRover = state.get('activeRover');
-    const photos = activeRover == "Curiosity" ? state.get('curiosityPhotos') : state.get('perseverancePhotos');
-    const tot_photos = photos.length;
+    const photos = state.get('roverPhotos');
     const num_photos = state.get('photoAmount');
+    const pageIndex = state.get('imagePage');
 
     return `
         <div class="more-btn-container">
             <button class="nav-btn prev-btn" value="prev" onclick="getPrevPage(store)">Prev</button>
 
-            <span id="page-num">Photos ${photos.length-num_photos+1}-${num_photos} of ${formatNumber(tot_photos)} </span>
+            <span id="page-num">Photos ${pageIndex*num_photos+1}-${pageIndex*num_photos+num_photos} </span>
 
             <button class="nav-btn next-btn" value="next" onclick="getNextPage(store)">Next</button>
         </div>
@@ -406,8 +404,15 @@ const setMessage = (state, name) => {
     updateStore(store, state);
 }
 
+// reset the pageIndex
+const resetPageIndex = (state, index) => {
+    state = state.set('imagePage', index);
+    updateStore(store, state);
+}
+
 // set the active rover
 const setRover = (state, name) => {
+    console.log(`Setting rover name to ${name}`);
     state = state.set('activeRover', name);
     updateStore(store, state);
 }
@@ -431,10 +436,9 @@ const addListeners = (root, state) => {
         const buttons = root.querySelectorAll(".btn");
         buttons.forEach(btn => {
             btn.addEventListener('click', (e) => {
-                setMessage(state, e.target.dataset.name);
-                // roverCall(state, e.target.dataset.name);
-                setRover(state, e.target.dataset.name);
-                showPhotos(state);
+                resetPageIndex(state, 0);
+                setMessage(store, e.target.dataset.name);
+                roverCall(store, e.target.dataset.name);
             });
         });
     }
@@ -459,8 +463,7 @@ const addListeners = (root, state) => {
             const caption = modal.querySelector('.caption');
             
             // find photo 
-            const activeRover = state.get('activeRover');
-            const photos = activeRover == 'Curiosity' ? state.get('curiosityPhotos'): state.get('perseverancePhotos');
+            const photos = state.get('roverPhotos');
             const photo = photos.filter((pic) => {
                 return pic.img_large_URL === e.target.src;
             });
@@ -511,17 +514,13 @@ const photoLabel = (photoSelection) => {
     }
 }
 
-// displays array of photos from a rover:
-const showPhotos = (state, startIndex = 0) => {
-    const activeRover = state.get('activeRover');
+// reset photo area
 
-    let photos = [];
-    if (activeRover == 'Perseverance') photos = state.get('perseverancePhotos');
-    else if (activeRover == 'Curiosity') photos = state.get('curiosityPhotos');
-    
+// displays array of photos from a rover:
+const showPhotos = (state) => {
+    const photos = state.get('roverPhotos');
     const amount = state.get('photoAmount');
     const selection = state.get('photoSelection');
-    photos = photos.slice(startIndex, startIndex + amount);
     
     if (photos.length === 0) {
         return "";
@@ -573,17 +572,18 @@ const getNextPage = async (state) => {
     const numPics = state.get('photoAmount');
     let page = state.get('imagePage') + 1;
 
+    let photos = [];
     if (roverName === 'Curiosity') {
         photos = await getCuriosityImages(numPics, page);
-        state = state.set('curiosityPhotos', photos);
-        state = state.set('imagePage', page);
     }
     else if (roverName === 'Perseverance') {
         photos = await getPerseveranceImages(numPics, page);
-        state = state.set('perseverancePhotos', photos);
-        state = state.set('imagePage', page);
     }
     
+    state = state
+        .set('roverPhotos', photos)
+        .set('imagePage', page);
+
     updateStore(store, state);
 }
 
@@ -751,24 +751,35 @@ const getNumPhotos = async (roverName, date, amount) => {
 
 // calls the NASA API multiple times 
 // then takes the results of those API calls (promises) and updates the store once, so that there is only one re-render of the page.
-const roverCall = async (state, roverName = "None") => {
-    const numPics = state.get('photoAmount');
-    const curiosityPhotos = await getCuriosityImages(numPics);
-    const perseverancePhotos = await getPerseveranceImages(numPics);
-    
-    const promises = [curiosityPhotos, perseverancePhotos]
-    Promise.all(promises)
-        .then(results => {
-            state = state.set('curiosityPhotos', results[0]);
-            state = state.set('perseverancePhotos', results[1]);
-            state = state.set('loading_msg', '');
-            state = state.set('activeRover', roverName);
-            state = state.set('photoSelection', 'all');
-            updateStore(store, state);
-        })
-        .catch(err => console.log(err));    
-}
+const roverCall = async (state, activeRover) => {
+    try {
+        const numPics = state.get('photoAmount');
+        const pageIndex = state.get('imagePage');
 
+        console.log({activeRover})
+    
+        if (activeRover === 'None') return;
+    
+        let photos = [];
+        if (activeRover === 'Curiosity') {
+            photos = await getCuriosityImages(numPics, pageIndex);
+        }
+        else {
+            photos = await getPerseveranceImages(numPics, pageIndex);
+        }
+        
+        state = state
+            .set('loading_msg', '')
+            .set('roverPhotos', photos)
+            .set('activeRover', activeRover)
+            .set('photoSelection', 'latest');
+
+        updateStore(store, state);
+    }
+    catch(err) {
+        console.error('Failed to fetch:', err);
+    }
+}
 
 // ------------------------------------------------------  RUN ON LOAD
 
@@ -776,7 +787,6 @@ const roverCall = async (state, roverName = "None") => {
 window.addEventListener('load', () => {
     history.pushState({view: 'intro'}, '', '');
     render(root, store);
-    roverCall(store);
 });
 
 // popstate executes when browser back btn is pressed. This will return user to intro landing page.  Works in conjunction with history.pushState();
