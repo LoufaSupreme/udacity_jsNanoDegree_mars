@@ -23,6 +23,15 @@ app.get('/api/apod', async (req, res) => {
     }
 })
 
+app.get('/api/status', (req, res) => {
+    try {
+        res.send({statusMsg: 'App still up bro'});
+    }
+    catch(err) {
+        console.log('error:', err);
+    }
+})
+
 // get certain amount of images for rover perseverance
 app.get('/api/photos/perseverance/:numPics/:page', async (req, res) => {
     const numPics = req.params.numPics;
