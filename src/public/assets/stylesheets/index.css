@@ -294,12 +294,13 @@ ul {
 .modal .caption {
   color: white;
   font-size: 1rem;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0,0,0,0.4);
   padding: 0.5rem;
-  border-radius: 15px;
+  border-radius: 8px;
   position: absolute;
   bottom: 5%;
   left: 50%;
+  width: 90%;
   transform: translateX(-50%);
 }
 
@@ -391,6 +392,10 @@ footer {
     max-width: 40%;
     min-width: 40%;
   }
+
+  .modal .caption {
+    width: 50%;
+  }
 }
 
 /* -------------------  DESKTOP  -------------------- */
@@ -407,6 +412,10 @@ footer {
   .img-date-box {
     max-width: 25%;
     min-width: 25%;
+  }
+
+  .modal .caption {
+    width: 50%;
   }
 }
 
