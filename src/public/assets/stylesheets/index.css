@@ -75,7 +75,6 @@ h1 {
   display: flex;
   flex-direction: column;
   padding-bottom: 1rem;
-  flex-grow: 1;
 }
 
 .btn {
@@ -98,21 +97,35 @@ h1 {
   padding: 1rem;
 }
 
+.rover-btn.row {
+  flex-direction: row;
+  padding: 0rem;
+}
+
 .rover-btn-img-container {
-  aspect-ratio: 1 /1;
+  aspect-ratio: 1 / 1;
   width: 60%;
   display: flex;
   justify-content: center;
   align-items: center;
+  pointer-events: none;
+}
+
+.rover-btn-img-container.small {
+  width: 20%;
+  padding-right: 1rem;
 }
 
 .rover-btn-img {
   height: 100%;
   width: 100%;
   object-fit: contain;
+  pointer-events: none;
 }
 
 .rover-btn-name {
+  font-size: 2rem;
+  pointer-events: none;
 }
 
 .btn:hover {

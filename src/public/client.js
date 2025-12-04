@@ -96,14 +96,26 @@ const App = (state) => {
         </main>
         `;
     }
+    else if (view === 'rover-selection') {
+        return `
+            <header>${makeBackBtn()}</header>
+            <main>
+                ${Header(state.get('header'))}
+                <section class="btn-container">
+                    ${makeButtons(rovers, 'large')}
+                </section>
+                <footer>Copyright © Davis Innovations | Data from NASA</footer>
+            </main>
+        `;
+    }
     else if (view === 'rovers') {
         return `
             <header>${makeBackBtn()}</header>
             ${makeModal()}
             <main>
-            ${Header(state.get('header'))}
+                ${Header(state.get('header'))}
                 <section class="btn-container">
-                    ${makeButtons(rovers)}
+                    ${makeButtons(rovers, 'small')}
                 </section>
                 <section class="specs-container">
                     ${writeMessage(loading_msg)}
@@ -149,7 +161,7 @@ const makeIntroBtns = () => {
                 Astronomy Photo of the Day
             </div>
         </div>
-        <div class="intro-btn" id="rovers-btn" data-view="rovers" onclick="changeView(this.dataset.view, store)">
+        <div class="intro-btn" id="rovers-btn" data-view="rover-selection" onclick="changeView(this.dataset.view, store)">
             <div class="intro-btn-text">
                 Mars Rovers
             </div>
@@ -170,8 +182,14 @@ const changeView = (view, state) => {
         state = state.set('view', 'apod');
         updateStore(store, state);
     }
+    else if (view === 'rover-selection') {
+        history.pushState({view: view}, '', 'mars_rovers'); //modifies url bar
+        state = state.set('header', 'Mars Rovers');
+        state = state.set('view', 'rover-selection');
+        updateStore(store, state);
+    }
     else if (view === 'rovers') {
-        history.pushState({view: view}, '', 'Mars_Rovers'); //modifies url bar
+        history.pushState({view: view}, '', 'mars_rovers'); //modifies url bar
         state = state.set('header', 'Mars Rovers');
         state = state.set('view', 'rovers');
         updateStore(store, state);
@@ -345,11 +363,11 @@ const imgHandler = (photo_array) => {
 }
 
 // create rover selection buttons on the screen
-const makeButtons = (rovers) => {
+const makeButtons = (rovers, size) => {
     const html = rovers.reduce((html, rover) => {
         return html + `
-            <div class="btn rover-btn" data-name="${rover}">
-                <div class='rover-btn-img-container'>
+            <div class="btn rover-btn ${size === 'small' ? 'row' : ''}" data-name="${rover}">
+                <div class='rover-btn-img-container ${size === 'small' ? 'small' : ""}'>
                     <img class='rover-btn-img' src='./assets/images/${rover}-rover.png'</img>
                 </div>
                 <div class='rover-btn-name'>${rover}</div>
@@ -423,11 +441,12 @@ const makeModal = () => {
 const addListeners = (root, state) => {
     
     // rover buttons:
-    if (state.get('view') === 'rovers') {
+    if (state.get('view') === 'rovers' || state.get('view') === 'rover-selection') {
         const buttons = root.querySelectorAll(".btn");
         buttons.forEach(btn => {
             btn.addEventListener('click', (e) => {
-                resetPageIndex(state, 0);
+                changeView('rovers', store);
+                resetPageIndex(store, 0);
                 setMessage(store, e.target.dataset.name);
                 roverCall(store, e.target.dataset.name);
             });
@@ -562,6 +581,9 @@ const showPhotos = (state) => {
     }
 }
 
+
+// ------------------------------------------------------  API CALLS
+
 // activated when the Next Page button is clicked
 // gets the next set of photos from the rover by making another API call
 const getNextPage = async (state) => {
@@ -601,8 +623,6 @@ const getPrevPage = (state) => {
 
     updateStore(store, state);
 }
-
-// ------------------------------------------------------  API CALLS
 
 // Example API call
 const getImageOfTheDay = (state) => {
