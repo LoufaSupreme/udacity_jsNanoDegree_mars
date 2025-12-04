@@ -19,6 +19,7 @@ body {
   flex-direction: column;
   font-family: 'Epilogue', sans-serif;   
   min-height: 100dvh;
+  height: auto;
   background-image: url('../images/stars.jpg');
   background-repeat:repeat;
   background-size:cover;
@@ -26,9 +27,19 @@ body {
 }
 
 header {
-  max-height: 5vh;
-  min-height: 5vh;
+  max-height: 5dvh;
+  min-height: 5dvh;
   display: flex;
+}
+
+@supports not (min-height: 100dvh) {
+  body {
+    min-height: 100vh;
+  }
+  header {
+    max-height: 5vh;
+    min-height: 5vh;
+  }
 }
 
 #back-btn {
