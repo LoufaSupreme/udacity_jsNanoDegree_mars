@@ -428,14 +428,18 @@ const addListeners = (root, state) => {
         });
 
         // next and prev image page btns
-        const prev = root.querySelector('.prev-btn');
-        const next = root.querySelector('.next-btn');
-        if (next) next.addEventListener('click', (e) => {
-            setMessage(store, store.get('activeRover'), "One moment...contacting space...")
-            getNextPage(state);
-        })
-        if (prev) prev.addEventListener('click', (e) => {
-            // getPrevPage(state);
+        const prevs = root.querySelectorAll('.prev-btn');
+        const nexts = root.querySelectorAll('.next-btn');
+        nexts.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                setMessage(store, store.get('activeRover'), "One moment...contacting space...")
+                getNextPage(state);
+            });
+        });
+        prevs.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                getPrevPage(state);
+            });
         })
     }
 
@@ -528,7 +532,8 @@ const photoLabel = (photoSelection) => {
 
 // displays array of photos from a rover:
 const showPhotos = (state) => {
-    const photos = state.get('roverPhotos');
+    const photoAmount = state.get('photoAmount');
+    const photos = state.get('roverPhotos').slice(-photoAmount);
     const loadingMsg = state.get('loading_msg');
     const selection = state.get('photoSelection');
     
@@ -567,9 +572,28 @@ const getNextPage = async (state) => {
     }
     
     state = state
-        .set('roverPhotos', photos)
+        .set('roverPhotos', [...state.get('roverPhotos'), ...photos])
         .set('imagePage', page);
 
+    updateStore(store, state);
+}
+
+// deletes the last "photoAmount" of photos from the array
+const getPrevPage = (state) => {
+    const deleteNum = state.get('photoAmount');
+    let photos = state.get('roverPhotos');
+    let page = state.get('imagePage') - 1;
+
+    
+    // if the photo array is > 27 pics, then delete the last 27 images
+    if (photos.length > deleteNum) {
+        photos = photos.splice(0, photos.length-deleteNum);
+    }
+
+    state = state
+        .set('roverPhotos', photos)
+        .set('imagePage', page);
+        
     updateStore(store, state);
 }
 
@@ -741,8 +765,6 @@ const roverCall = async (state, activeRover) => {
     try {
         const numPics = state.get('photoAmount');
         const pageIndex = state.get('imagePage');
-
-        console.log({activeRover})
     
         if (activeRover === 'None') return;
     
