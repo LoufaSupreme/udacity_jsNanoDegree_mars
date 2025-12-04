@@ -751,16 +751,6 @@ const roverCall = async (state, activeRover) => {
 window.addEventListener('load', () => {
     history.pushState({view: 'intro'}, '', '');
     render(root, store);
-    
-    // send an API request to server every 10min to keep Render.com from
-    // spinning down my free tier deployment
-    setInterval(async () => {
-        const status = await fetch('/api/status');
-        const statusJSON = await status.json();
-        const statusMsg = statusJSON.statusMsg;
-
-        console.log(`Status: ${statusMsg}`)
-    }, 600000);
 });
 
 // popstate executes when browser back btn is pressed. This will return user to intro landing page.  Works in conjunction with history.pushState();

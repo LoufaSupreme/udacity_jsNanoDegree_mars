@@ -23,6 +23,17 @@ app.get('/api/apod', async (req, res) => {
     }
 })
 
+// send an API request to server every 10min to keep Render.com from
+// spinning down my free tier deployment
+setInterval(async () => {
+    const status = await fetch('https://project-red-rover.onrender.com/api/status');
+    const statusJSON = await status.json();
+    const statusMsg = statusJSON.statusMsg;
+
+    console.log(`Status: ${statusMsg}`)
+}, 600000);
+
+// just a way to ping the server
 app.get('/api/status', (req, res) => {
     try {
         res.send({statusMsg: 'App still up bro'});
