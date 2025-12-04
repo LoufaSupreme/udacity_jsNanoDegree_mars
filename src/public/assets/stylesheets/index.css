@@ -27,7 +27,6 @@ body {
 }
 
 header {
-  max-height: 5dvh;
   min-height: 5dvh;
   display: flex;
 }
@@ -37,7 +36,6 @@ header {
     min-height: 100vh;
   }
   header {
-    max-height: 5vh;
     min-height: 5vh;
   }
 }
@@ -397,8 +395,12 @@ footer {
 
 
 
-/* -------------------  TABLET  --------------------- */
-@media (min-width: 768px) {
+/* ----------------  Landscape Mobile  --------------- */
+@media only screen and (min-width: 390px) and (orientation: landscape) {
+  .btn-container {
+    flex-direction: row;
+  }
+  
   .img-date-box {
     max-width: 40%;
     min-width: 40%;
