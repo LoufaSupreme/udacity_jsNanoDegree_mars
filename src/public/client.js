@@ -583,7 +583,6 @@ const getPrevPage = (state) => {
     const deleteNum = state.get('photoAmount');
     let photos = state.get('roverPhotos');
     let page = state.get('imagePage') - 1;
-
     
     // if the photo array is > 27 pics, then delete the last 27 images
     if (photos.length > deleteNum) {
@@ -593,7 +592,7 @@ const getPrevPage = (state) => {
     state = state
         .set('roverPhotos', photos)
         .set('imagePage', page);
-        
+
     updateStore(store, state);
 }
 
@@ -630,33 +629,6 @@ const getEarthPhoto = async (state) => {
         .catch(err => console.log(err));
     
     return earth_img;
-}
-
-// API call to get rover manifest info
-const getManifest = async (roverName) => {
-
-    console.log(`Fetching Manifest for Rover ${roverName}`);
-
-    const manifest = await fetch(`/api/manifests/${roverName}`)
-        .then(res => res.json())
-        .then(res => {
-            const info = res.data.photo_manifest;
-            const roverManifest = {
-                name: info.name,                    // rover name
-                launch_date: info.launch_date,
-                landing_date: info.landing_date,
-                latest_date: info.max_date,         // latest earth date
-                latest_sol: info.max_sol,           // latest mars day (sol)
-                status: info.status,                // mission status
-                total_photos: info.total_photos,    // tot # photos taken by rover
-                photo_info_list: info.photos        // array of each sol with info on photos taken that sol
-            }
-            return roverManifest;
-        })
-        .catch(err => console.log(err));
-
-    console.log('Manifest Received.')
-    return manifest;
 }
 
 // API call to get Perseverance rover images
@@ -715,48 +687,6 @@ const getCuriosityImages = async (numPics, page) => {
 
     console.log('Curiosity images received');
     return normalizedPhotos;
-}
-
-// API Call to get rover "latest_photos"
-const getLatestPhotos = async (roverName) => {    
-
-    console.log(`Fetching latest photos for Rover ${roverName}`);
-    
-    const roverPhotos = await fetch(`/api/latest_photos/${roverName}`)
-        .then(res => res.json())
-        .then(res => res.data.images)
-        .catch(err => console.log(err));
-    
-    console.log('Latest Photos Received.')
-    return roverPhotos;
-}
-
-// API call to get several days worth of pictures starting from the rover's most recent day on Mars
-const getDaysOfPhotos = async (roverName, date, num_days) => {
-    
-    console.log(`Fetching ${num_days}days worth of images for Rover ${roverName}`);
-
-    const photos = await fetch(`/api/photos/days/${roverName}/${date}/${num_days}`)
-        .then(res => res.json())
-        .then(data => data)
-        .catch(err => console.log(err));
-    
-    console.log(`${num_days} days of photos received.`)
-    return photos;
-}
-
-// API call to get a certain number of photos per rover, starting from a particular day.
-const getNumPhotos = async (roverName, date, amount) => {
-
-    console.log(`Fetching ${amount} images from Rover ${roverName}`);
-    
-    const photos = await fetch(`/api/photos/amount/${roverName}/${date}/${amount}`)
-        .then(res => res.json())
-        .then(data => data)
-        .catch(err => console.log(err));
-
-    console.log(`${amount} photos received.`)
-    return photos;
 }
 
 // calls the NASA API multiple times 
