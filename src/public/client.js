@@ -347,7 +347,13 @@ const imgHandler = (photo_array) => {
 // create rover selection buttons on the screen
 const makeButtons = (rovers) => {
     const html = rovers.reduce((html, rover) => {
-        return html + `<div class="btn" data-name="${rover}">${rover}</div>`;
+        return html + `
+            <div class="btn rover-btn" data-name="${rover}">
+                <div class='rover-btn-img-container'>
+                    <img class='rover-btn-img' src='./assets/images/${rover}-rover.png'</img>
+                </div>
+                <div class='rover-btn-name'>${rover}</div>
+            </div>`;
     },'');
     
     return (`

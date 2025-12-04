@@ -93,6 +93,28 @@ h1 {
   flex:1;
 }
 
+.rover-btn {
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.rover-btn-img-container {
+  aspect-ratio: 1 /1;
+  width: 60%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.rover-btn-img {
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+}
+
+.rover-btn-name {
+}
+
 .btn:hover {
   background-color: rgba(255,255,255,0.2);
   font-size: 2.2rem;
