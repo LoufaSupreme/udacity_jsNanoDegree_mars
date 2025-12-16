@@ -528,7 +528,7 @@ function formatDate(dateObj) {
 
     const meridian = dateObj.getHours() >= 12 ? "PM" : "AM";
     const month = months[dateObj.getMonth()];
-    const day = dateObj.getDay();
+    const day = dateObj.getDate();
     const year = dateObj.getFullYear();
 
     const date = `${hours}:${mins}${meridian} ${month} ${day}, ${year}`
