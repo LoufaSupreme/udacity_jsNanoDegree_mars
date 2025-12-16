@@ -310,6 +310,9 @@ ul {
   bottom: 5%;
   left: 50%;
   width: 90%;
+  max-height: 20%;
+  overflow-y: scroll;
+  scrollbar-width: none;
   transform: translateX(-50%);
 }
 
@@ -428,7 +431,7 @@ footer {
   }
 
   .modal .caption {
-    width: 50%;
+    /* width: 50%; */
   }
 }
 
