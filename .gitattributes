@@ -1,0 +1,7 @@
+# Store everything with Unix line endings; entrypoint.sh fails to run with CRLF
+* text=auto eol=lf
+# Binary assets must never be touched
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.ttf  binary

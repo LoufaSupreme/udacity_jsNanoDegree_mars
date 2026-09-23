@@ -11,7 +11,7 @@ const port = 3000
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 app.use('/', express.static(path.join(__dirname, '../public')))
-app.use(cors({ origin: ["http://localhost:3000", "https://shmurdle-uu5e7.ondigitalocean.app", "https://project-red-rover.onrender.com"] }))
+// app.use(cors({ origin: ["http://localhost:3000", "https://shmurdle-uu5e7.ondigitalocean.app", "https://project-red-rover.onrender.com"] }))
 
 // Astronomy Photo of the Day API endpoint:
 app.get('/api/apod', async (req, res) => {
@@ -24,19 +24,10 @@ app.get('/api/apod', async (req, res) => {
     }
 })
 
-// send an API request to server every 10min to check status:
-setInterval(async () => {
-    const status = await fetch('https://project-red-rover.onrender.com/api/status');
-    const statusJSON = await status.json();
-    const statusMsg = statusJSON.statusMsg;
-
-    console.log(`Status: ${statusMsg}`)
-}, 600000);
-
 // just a way to ping the server
 app.get('/api/status', (req, res) => {
     try {
-        res.send({statusMsg: 'Project Red Rover is still up at https://project-red-rover.onrender.com bro'});
+        res.send({statusMsg: 'Project Red Rover is still up bro'});
     }
     catch(err) {
         console.log('error:', err);

@@ -1,0 +1,40 @@
+# Keep the build context small and never bake local state or secrets into the image.
+
+node_modules
+npm-debug.log*
+
+# Local runtime state — the container writes these to its own bind-mounted volume.
+# Shipping an 18 MB cache into the image would bloat every GHCR pull for data the
+# scheduler rebuilds anyway.
+cache
+data
+logs
+*.log
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Version control and CI
+.git
+.gitignore
+.github
+
+# Phase 0 probes — one-off verification scripts, not part of the running app
+probe
+
+# Docs and planning
+*.md
+!deployment/*.md
+
+# Others - may not be relevant depending on project
+*.sqlite3
+__pycache__/
+*.pyc
+.venv/
+dist/
+build/
+.svelte-kit/
+.astro/
+.DS_Store

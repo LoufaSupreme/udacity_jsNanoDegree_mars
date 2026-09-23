@@ -1,0 +1,39 @@
+# Project Red Rover — production stack for orb.
+# Deploy to ~/docker/davis-innovations/project-red-rover/docker-compose.yml
+#
+# The app is NOT published to a host port. It joins the shared `edge` network, and the
+# domain-wide tunnel (~/docker/davis-innovations/tunnel) routes the public hostname to
+# it. One tunnel serves every subdomain on davisinnovations.ca, so adding the next app
+# means a compose file plus one hostname route — not another tunnel and another token.
+#
+# Cloudflare public hostname route for this app:
+#   Service URL: http://project-red-rover:3000   (http://, not https://)
+#
+# Place a filled-in `.env` (see .env.example) next to this file, then chmod 600 .env.
+
+services:
+  app:
+    image: ghcr.io/loufasupreme/project-red-rover:${APP_TAG:-latest}   # APP_TAG=<git-sha> to roll back
+    # cloudflared resolves this name on the `edge` network — it must match the
+    # URL field of the hostname route in the Cloudflare dashboard.
+    container_name: project-red-rover
+    restart: unless-stopped
+    env_file: .env                 # API_KEY (api.nasa.gov)
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      TZ: America/Toronto          # date formatting only; there are no cron jobs
+    expose:
+      - "3000"                     # internal only — cloudflared connects over `edge`
+    # No volumes: the app holds no state. Everything it serves is either bundled
+    # into the image or fetched from NASA per request.
+    #
+    # Express + a handful of small dependencies idles near 60 MB. The limit is a
+    # blast-radius cap, not a tuning knob — orb shares 7.6 GB with Nextcloud,
+    # Immich and Jellyfin, so a leak here must not push MariaDB into swap.
+    mem_limit: 192m
+    networks: [edge]
+
+networks:
+  edge:
+    external: true                 # created once by hand; never torn down by an app
