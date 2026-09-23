@@ -55,9 +55,12 @@ jobs:
           context: .                       # repo root — the Dockerfile's COPYs assume this
           file: deployment/Dockerfile
           push: true
+          # Two tags per build: :latest for the next deploy, :<sha> as an immutable
+          # rollback target. No trailing comments inside the block below — YAML
+          # takes every line of a `|` scalar literally, so a `#` becomes part of the tag.
           tags: |
             ${{ env.IMAGE }}:latest
-            ${{ env.IMAGE }}:${{ github.sha }}    # immutable rollback target
+            ${{ env.IMAGE }}:${{ github.sha }}
           # Stamps the commit into the image, so on orb you can always answer
           # "which build is actually running?":
           #   docker inspect project-red-rover \
